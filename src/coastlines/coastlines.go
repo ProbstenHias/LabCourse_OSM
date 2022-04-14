@@ -2,6 +2,7 @@ package coastlines
 
 import (
 	"fmt"
+	geojson "github.com/paulmach/go.geojson"
 	"github.com/qedus/osmpbf"
 	"io"
 	"log"
@@ -10,9 +11,7 @@ import (
 	"time"
 )
 
-const path string = "C:/Users/Matthias/Downloads/antarctica-latest.osm.pbf"
-
-func ReadPBF() {
+func readPBF(path string) (map[int64][]float64, map[int64][]int64) {
 	start := time.Now()
 
 	f, err := os.Open(path)
@@ -30,7 +29,8 @@ func ReadPBF() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	nodes := make(map[int64][]float64)
+	ways := make(map[int64][]int64)
 	for {
 		if v, err := d.Decode(); err == io.EOF {
 			break
@@ -39,8 +39,7 @@ func ReadPBF() {
 		} else {
 			switch v := v.(type) {
 			case *osmpbf.Node:
-				// Process Node v
-				continue
+				nodes[v.ID] = []float64{v.Lon, v.Lat}
 
 			case *osmpbf.Way:
 				// Process Way v
@@ -48,7 +47,7 @@ func ReadPBF() {
 				if !ok || value != "coastline" {
 					continue
 				}
-				fmt.Println(v.ID)
+				ways[v.ID] = v.NodeIDs
 
 			case *osmpbf.Relation:
 				continue
@@ -60,5 +59,24 @@ func ReadPBF() {
 	end := time.Now()
 	duration := end.Sub(start)
 	fmt.Printf("Time needed to evalute pbf file: %s\n", duration)
+	return nodes, ways
+}
+
+func createGeojson(nodes map[int64][]float64, ways map[int64][]int64) []byte {
+	fc := geojson.NewFeatureCollection()
+	for _, val := range ways {
+		var lineNodes [][]float64
+		for _, nodeId := range val {
+			lineNodes = append(lineNodes, nodes[nodeId])
+		}
+		feature := geojson.NewLineStringFeature(lineNodes)
+		feature.SetProperty("", 0)
+		fc.AddFeature(feature)
+	}
+	rawJson, _ := fc.MarshalJSON()
+	return rawJson
+}
+func Main(path string) []byte {
+	return createGeojson(readPBF(path))
 
 }
