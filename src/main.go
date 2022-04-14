@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "OSM/coastlines"
 
 func main() {
-	fmt.Println("hello world")
+	coastlines.ReadPBF()
 }
