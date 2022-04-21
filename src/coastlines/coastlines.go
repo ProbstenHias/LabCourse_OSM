@@ -31,6 +31,7 @@ func readPBF(path string) (map[int64][]float64, map[int64][]int64) {
 	}
 	nodes := make(map[int64][]float64)
 	ways := make(map[int64][]int64)
+	//var happenings int64 = 0
 	for {
 		if v, err := d.Decode(); err == io.EOF {
 			break
@@ -38,16 +39,33 @@ func readPBF(path string) (map[int64][]float64, map[int64][]int64) {
 			log.Fatal(err)
 		} else {
 			switch v := v.(type) {
+			// here we just save the node id as key and the lat and long coordinates as value in the map
 			case *osmpbf.Node:
 				nodes[v.ID] = []float64{v.Lon, v.Lat}
 
+			//here we process the ways
 			case *osmpbf.Way:
-				// Process Way v
+				// check if it is a coastline
 				value, ok := v.Tags["natural"]
 				if !ok || value != "coastline" {
 					continue
 				}
-				ways[v.ID] = v.NodeIDs
+				// use the first node in the way as the key for the map
+				// since a node might be the first node for more than one way we need a special encoding to not overwrite an entry
+				// we concatenate an index to the node id, the index describes how many ways with the same node as the starting node came before this way
+				// so for the first occurance we use <NodeID>+0 for the second <NodeID>+1, ...
+				//var index int64 = 0
+				//
+				//for true {
+				//	_, exists := ways[v.NodeIDs[0]*10+index]
+				//	if exists {
+				//		index++
+				//		happenings++
+				//	}
+				//	break
+				//}
+				//ways[v.NodeIDs[0]*10+index] = v.NodeIDs
+				ways[v.NodeIDs[0]] = v.NodeIDs
 
 			case *osmpbf.Relation:
 				continue
@@ -76,7 +94,53 @@ func createGeojson(nodes map[int64][]float64, ways map[int64][]int64) []byte {
 	rawJson, _ := fc.MarshalJSON()
 	return rawJson
 }
+
+// merges ways where the end node of the way is the starting node of another way
+func mergeWays(ways map[int64][]int64) {
+	toDelete := make(map[int64]bool)
+	for key, value := range ways {
+		// if this way is already merged skip it
+		if _, isInToDelete := toDelete[key]; isInToDelete {
+			continue
+		}
+		lastNode := value[len(value)-1]
+		// if the way is a loop we just skip it
+		if lastNode == key {
+			continue
+		}
+		nodes, exists := ways[lastNode]
+		// if there is no other way that starts with this node, skip it
+		if !exists {
+			continue
+		}
+		toDelete[lastNode] = true
+		newNodeSlice := append(value, nodes...)
+		ways[key] = newNodeSlice
+
+	}
+	for key := range toDelete {
+		delete(ways, key)
+	}
+}
+
 func Main(path string) []byte {
-	return createGeojson(readPBF(path))
+	nodes, ways := readPBF(path)
+	//fmt.Printf("Ways before merging: %d\n", len(ways))
+	//mergeWays(ways)
+	//fmt.Printf("Ways after merging: %d\n", len(ways))
+	//mergeWays(ways)
+	//fmt.Printf("Ways after merging twice: %d\n", len(ways))
+	//mergeWays(ways)
+	//fmt.Printf("Ways after merging thrice %d\n", len(ways))
+	oldLength := len(ways)
+	for true {
+		mergeWays(ways)
+		if oldLength == len(ways) || len(ways) == 1 {
+			break
+		}
+		oldLength = len(ways)
+	}
+
+	return createGeojson(nodes, ways)
 
 }
