@@ -1,5 +1,5 @@
 // This example demonstrates a dist queue built using the heap interface.
-package main
+package shortestPath
 
 import (
 	"container/heap"
