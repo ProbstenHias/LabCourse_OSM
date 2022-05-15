@@ -1,4 +1,4 @@
-package main
+package shortestPath
 
 import (
 	"container/heap"
@@ -7,11 +7,11 @@ import (
 )
 
 func dijkstra(start int32, end int32, graph Graph) (float64, []int32) {
-	dist := make([]float64, len(graph.nodes))
+	dist := make([]float64, len(graph.Nodes))
 	for i := 0; i < len(dist); i++ {
 		dist[i] = math.MaxFloat64
 	}
-	prev := make([]int32, len(graph.nodes))
+	prev := make([]int32, len(graph.Nodes))
 	pq := make(PriorityQueue, 0)
 
 	heap.Push(&pq, &Item{
@@ -31,12 +31,12 @@ func dijkstra(start int32, end int32, graph Graph) (float64, []int32) {
 			return node.dist, prev
 		}
 		for _, e := range graph.getAllOutgoingEdgesOfNode(node.id) {
-			var alt = node.dist + graph.distance[e]
-			if alt >= dist[graph.edges[e]] {
+			var alt = node.dist + graph.Distance[e]
+			if alt >= dist[graph.Edges[e]] {
 				continue
 			}
 			heap.Push(&pq, &Item{
-				id:   graph.edges[e],
+				id:   graph.Edges[e],
 				dist: alt,
 				prev: node.id,
 			})
