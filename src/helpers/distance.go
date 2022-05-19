@@ -1,10 +1,10 @@
-package shortestPath
+package helpers
 
 import "math"
 
 const R = 6_371_000
 
-func haversine(p1 []float64, p2 []float64) int {
+func Haversine(p1 []float64, p2 []float64) int {
 	var dLat = deg2grad(p2[0] - p1[0])
 	var dLon = deg2grad(p2[1] - p1[1])
 	var a = math.Sin(dLat/2)*math.Sin(dLat/2) + math.Cos(deg2grad(p1[0]))*math.Cos(deg2grad(p2[0]))*math.Sin(dLon/2)*math.Sin(dLon/2)
