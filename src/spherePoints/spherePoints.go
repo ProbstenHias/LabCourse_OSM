@@ -1,13 +1,18 @@
-package main
+package spherePoints
 
 import (
 	"fmt"
-	geojson "github.com/paulmach/go.geojson"
 	"math"
 	"time"
+
+	geojson "github.com/paulmach/go.geojson"
 )
 
-func generatePointsOnSphere(n int64) [][]float64 {
+func to_rad(angle float64) float64 {
+	return angle * (math.Pi / 180)
+}
+
+func GeneratePointsOnSphere(n int64) [][]float64 {
 	start := time.Now()
 	var points [][]float64
 	var nCount = 0
@@ -18,6 +23,9 @@ func generatePointsOnSphere(n int64) [][]float64 {
 	var dPhi = a / dTheta
 	for m := 0.; m < mTheta; m++ {
 		var theta = math.Pi * (m + 0.5) / mTheta
+		if theta < to_rad(90-85.1) {
+			continue
+		}
 		var mPhi = math.Round(2 * math.Pi * math.Sin(theta) / dPhi)
 		for n := 0.; n < mPhi; n++ {
 			var phi = 2 * math.Pi * n / mPhi
@@ -29,7 +37,7 @@ func generatePointsOnSphere(n int64) [][]float64 {
 	}
 	end := time.Now()
 	diff := end.Sub(start)
-	fmt.Printf("time to create points: %s", diff)
+	fmt.Printf("time to create points: %s \n", diff)
 	return points
 }
 
@@ -42,11 +50,11 @@ func anglesToLatLong(theta, phi float64) (float64, float64) {
 	return long, lat
 }
 
-func pointsToGeoJson(points [][]float64) []byte {
+func PointsToGeoJson(points [][]float64) []byte {
 	fc := geojson.NewFeatureCollection()
 	for _, elem := range points {
 		feature := geojson.NewPointFeature(elem)
-		feature.SetProperty("", 0)
+		feature.SetProperty("marker-size", "small")
 		fc.AddFeature(feature)
 	}
 	rawJson, _ := fc.MarshalJSON()

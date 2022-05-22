@@ -2,13 +2,14 @@ package coastlines
 
 import (
 	"fmt"
-	geojson "github.com/paulmach/go.geojson"
-	"github.com/qedus/osmpbf"
 	"io"
 	"log"
 	"os"
 	"runtime"
 	"time"
+
+	geojson "github.com/paulmach/go.geojson"
+	"github.com/qedus/osmpbf"
 )
 
 func readPBF(path string) (map[int64][]float64, map[int64][]int64) {
@@ -80,7 +81,7 @@ func readPBF(path string) (map[int64][]float64, map[int64][]int64) {
 	return nodes, ways
 }
 
-func createGeojson(nodes map[int64][]float64, ways map[int64][]int64) []byte {
+func CreateGeojson(nodes map[int64][]float64, ways map[int64][]int64) []byte {
 	fc := geojson.NewFeatureCollection()
 	for _, val := range ways {
 		var lineNodes [][]float64
@@ -97,6 +98,7 @@ func createGeojson(nodes map[int64][]float64, ways map[int64][]int64) []byte {
 
 // merges ways where the end node of the way is the starting node of another way
 func mergeWays(ways map[int64][]int64) {
+
 	toDelete := make(map[int64]bool)
 	for key, value := range ways {
 		// if this way is already merged skip it
@@ -123,7 +125,7 @@ func mergeWays(ways map[int64][]int64) {
 	}
 }
 
-func Main(path string) []byte {
+func Main(path string) (map[int64][]float64, map[int64][]int64) {
 	nodes, ways := readPBF(path)
 	//fmt.Printf("Ways before merging: %d\n", len(ways))
 	//mergeWays(ways)
@@ -132,8 +134,10 @@ func Main(path string) []byte {
 	//fmt.Printf("Ways after merging twice: %d\n", len(ways))
 	//mergeWays(ways)
 	//fmt.Printf("Ways after merging thrice %d\n", len(ways))
+
 	oldLength := len(ways)
-	for true {
+
+	for {
 		mergeWays(ways)
 		if oldLength == len(ways) || len(ways) == 1 {
 			break
@@ -141,6 +145,6 @@ func Main(path string) []byte {
 		oldLength = len(ways)
 	}
 
-	return createGeojson(nodes, ways)
+	return nodes, ways
 
 }
