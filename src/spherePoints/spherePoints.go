@@ -155,7 +155,7 @@ func generatePointsOnSphere(n int64) ([][]float64, []Edge) {
 	}
 	end := time.Now()
 	diff := end.Sub(start)
-	fmt.Printf("time to create points: %s", diff)
+	fmt.Printf("time to create points: %s \n", diff)
 	return points, edges
 }
 
@@ -177,11 +177,11 @@ func phiToLong(phi float64) float64 {
 	return -180 + ((phi * 360) / (2 * math.Pi))
 }
 
-func pointsToGeoJson(points [][]float64) []byte {
+func PointsToGeoJson(points [][]float64) []byte {
 	fc := geojson.NewFeatureCollection()
 	for _, elem := range points {
-		feature := geojson.NewPointFeature([]float64{elem[1], elem[0]})
-		feature.SetProperty("", 0)
+		feature := geojson.NewPointFeature(elem)
+		feature.SetProperty("marker-size", "small")
 		fc.AddFeature(feature)
 	}
 	rawJson, _ := fc.MarshalJSON()
