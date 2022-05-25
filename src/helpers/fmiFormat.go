@@ -4,6 +4,7 @@ import (
 	"OSM/src/datastructures"
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -39,12 +40,47 @@ func CreateGraphFromFile(pathToFile string) datastructures.Graph {
 	createNodesFromFile(numberNodes, graph, idToIdx, fileScanner)
 	createEdgesFromFile(numberEdges, graph, idToIdx, fileScanner)
 
-	readFile.Close()
+	err = readFile.Close()
+	if err != nil {
+		log.Fatalf("Got error while clsing a filereader. Err: %s", err.Error())
+	}
 	return graph
 }
 
 func createFileFromGraph(graph datastructures.Graph, pathToFile string) {
+	f, _ := os.Create(pathToFile)
+	w := bufio.NewWriter(f)
+	linesToWrite := []string{"# a comment for good measure\n", "\n", string(rune(len(graph.Nodes))), "\n", string(rune(len(graph.Edges))), "\n"}
+	for _, line := range linesToWrite {
+		_, err := w.WriteString(line)
+		if err != nil {
+			log.Fatalf("Got error while writing to a file. Err: %s", err.Error())
+		}
+	}
 
+	for i := 0; i < len(graph.Nodes); i++ {
+		line := fmt.Sprintf("%d %f %f\n", i, graph.Nodes[i][0], graph.Nodes[i][1])
+		_, err := w.WriteString(line)
+		if err != nil {
+			log.Fatalf("Got error while writing to a file. Err: %s", err.Error())
+
+		}
+	}
+	var currFrom = 0
+	for i := 0; i < len(graph.Edges); i++ {
+		for int32(i) >= graph.Offset[currFrom+1] {
+			currFrom++
+		}
+		line := fmt.Sprintf("%d %d %d", currFrom, graph.Edges[i], graph.Distance[i])
+		_, err := w.WriteString(line)
+		if err != nil {
+			log.Fatalf("Got error while writing to a file. Err: %s", err.Error())
+		}
+	}
+	err := w.Flush()
+	if err != nil {
+		log.Fatalf("Got error while flushing a filewriter. Err: %s", err.Error())
+	}
 }
 
 func createNodesFromFile(nodeCount int, graph datastructures.Graph, idToIdx map[int]int, fileScanner *bufio.Scanner) {
