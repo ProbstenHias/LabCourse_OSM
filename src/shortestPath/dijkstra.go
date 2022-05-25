@@ -1,44 +1,46 @@
 package shortestPath
 
 import (
+	"OSM/src/datastructures"
 	"container/heap"
 	"log"
 	"math"
 )
 
-func dijkstra(start int32, end int32, graph Graph) (float64, []int32) {
-	dist := make([]float64, len(graph.Nodes))
+func Dijkstra(start int32, end int32, graph datastructures.Graph) (int32, []int32) {
+	dist := make([]int32, len(graph.Nodes))
 	for i := 0; i < len(dist); i++ {
-		dist[i] = math.MaxFloat64
+		dist[i] = math.MaxInt32
 	}
 	prev := make([]int32, len(graph.Nodes))
-	pq := make(PriorityQueue, 0)
+	pq := make(datastructures.PriorityQueue, 0)
 
-	heap.Push(&pq, &Item{
-		id:   start,
-		dist: 0,
-		prev: start,
+	heap.Push(&pq, &datastructures.Item{
+		Id:   start,
+		Dist: 0,
+		Prev: start,
 	})
 	for pq.Len() > 0 {
-		node := heap.Pop(&pq).(*Item)
-		if node.dist > dist[node.id] {
+		node := heap.Pop(&pq).(*datastructures.Item)
+		if node.Dist >= dist[node.Id] {
 			continue
 		}
-		dist[node.id] = node.dist
-		prev[node.id] = node.prev
+		dist[node.Id] = node.Dist
+		prev[node.Id] = node.Prev
 
-		if node.id == end {
-			return node.dist, prev
+		if node.Id == end {
+			return node.Dist, prev
 		}
-		for _, e := range graph.getAllOutgoingEdgesOfNode(node.id) {
-			var alt = node.dist + graph.Distance[e]
+		for _, e := range graph.GetAllOutgoingEdgesOfNode(node.Id) {
+
+			var alt = node.Dist + graph.Distance[e]
 			if alt >= dist[graph.Edges[e]] {
 				continue
 			}
-			heap.Push(&pq, &Item{
-				id:   graph.Edges[e],
-				dist: alt,
-				prev: node.id,
+			heap.Push(&pq, &datastructures.Item{
+				Id:   graph.Edges[e],
+				Dist: alt,
+				Prev: node.Id,
 			})
 		}
 	}
