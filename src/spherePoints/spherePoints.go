@@ -1,4 +1,4 @@
-package main
+package spherePoints
 
 import (
 	"OSM/src/helpers"
@@ -10,7 +10,7 @@ import (
 
 const LowerBound = -85
 
-func generatePointsOnSphere(n int64) ([][]float64, []Edge) {
+func GeneratePointsOnSphere(n int64) ([][]float64, []Edge) {
 	start := time.Now()
 
 	// here we store the points that were generated and are in fact in water
