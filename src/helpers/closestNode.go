@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func GetClosestNodeInGraph(node []float64, graph datastructures.Graph) int32 {
+func GetClosestNodeInGraph(node []float64, graph datastructures.Graph) (int32, []float64) {
 	startTime := time.Now()
 	minDistance := math.MaxInt32
 	var minIdx = 0
@@ -20,5 +20,5 @@ func GetClosestNodeInGraph(node []float64, graph datastructures.Graph) int32 {
 		minIdx = i
 	}
 	log.Printf("Time to calculate closest node: %s\n", time.Since(startTime))
-	return int32(minIdx)
+	return int32(minIdx), graph.Nodes[minIdx]
 }
