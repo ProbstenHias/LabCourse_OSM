@@ -66,20 +66,20 @@ func checkPointP(point []float64, polygon [][]float64, tranNodes []float64) int 
 	var vAlat, vAlon, tlonA float64
 
 	// maybe we dont need this
-	if pLat == -xLat {
-		delLon := degToRad(pLon) - degToRad(xLon)
-		if delLon < -math.Pi {
-			delLon = delLon + 2*math.Pi
-		}
-		if delLon > math.Pi {
-			delLon = delLon - 2*math.Pi
-		}
-		if delLon == math.Pi || delLon == -math.Pi {
-			log.Printf("P (%f,%f) is antipodal to X (%f,%f). Cannot determine location", pLat, pLon, xLat, xLon)
-
-			return 3 // return 3 for antipodal
-		}
-	}
+	//if pLat == -xLat {
+	//	delLon := degToRad(pLon) - degToRad(xLon)
+	//	if delLon < -math.Pi {
+	//		delLon = delLon + 2*math.Pi
+	//	}
+	//	if delLon > math.Pi {
+	//		delLon = delLon - 2*math.Pi
+	//	}
+	//	if delLon == math.Pi || delLon == -math.Pi {
+	//		log.Printf("P (%f,%f) is antipodal to X (%f,%f). Cannot determine location", pLat, pLon, xLat, xLon)
+	//
+	//		return 3 // return 3 for antipodal
+	//	}
+	//}
 
 	iCross := 0 //count crossings
 
@@ -168,8 +168,6 @@ func isPointInWater(wayNodes [][][]float64, tranNodes [][]float64, boundBox [][]
 			if loc == 0 || loc == 2 { //treating edges as land
 				toRet = 0
 				break
-			} else {
-				continue //check next polygon to see if crossing or not
 			}
 		}
 	}
@@ -234,26 +232,6 @@ func TopLevel(wayNodes [][][]float64, spherePointsArr [][]float64) []bool {
 	duration11 := end11.Sub(start11)
 	log.Printf("Preprocessing of PIP: %s\n", duration11)
 
-	////////////// without goroutines (sequential) ////////////////////
-	// for i = 0; i < len(get_p_array); i++ {
-	// 	start := time.Now()
-	// 	var flag bool = false
-
-	// 	if get_p_loc(wayNodes, array_tran_way_nodes, bound_box, get_p_array[i], x_loc) == 1 {
-	// 		flag = true
-	// 		correct_p_array = append(correct_p_array, get_p_array[i])
-	// 	}
-
-	// 	end := time.Now()
-	// 	duration := end.Sub(start)
-	// 	fmt.Printf("Time to find where P[%d] is: %s.  ", i, duration)
-	// 	if flag {
-	// 		fmt.Printf("In Water. \n")
-	// 	} else {
-	// 		fmt.Printf("In Land. \n")
-	// 	}
-	// }
-	////////////// without goroutines (sequential) ////////////////////
 	start1 := time.Now()
 	results := make(chan []float64, len(spherePointsArr)) //channel for water points from of goroutines are stored here
 	countChan := make(chan bool, len(spherePointsArr))
