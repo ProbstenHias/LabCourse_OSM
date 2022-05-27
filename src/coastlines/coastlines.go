@@ -50,21 +50,7 @@ func readPBF(path string) (map[int64][]float64, map[int64][]int64) {
 				if !ok || value != "coastline" {
 					continue
 				}
-				// use the first node in the way as the key for the map
-				// since a node might be the first node for more than one way we need a special encoding to not overwrite an entry
-				// we concatenate an index to the node id, the index describes how many ways with the same node as the starting node came before this way
-				// so for the first occurance we use <NodeID>+0 for the second <NodeID>+1, ...
-				//var index int64 = 0
-				//
-				//for true {
-				//	_, exists := ways[v.NodeIDs[0]*10+index]
-				//	if exists {
-				//		index++
-				//		happenings++
-				//	}
-				//	break
-				//}
-				//ways[v.NodeIDs[0]*10+index] = v.NodeIDs
+
 				ways[v.NodeIDs[0]] = v.NodeIDs
 
 			case *osmpbf.Relation:
@@ -76,7 +62,7 @@ func readPBF(path string) (map[int64][]float64, map[int64][]int64) {
 	}
 	end := time.Now()
 	duration := end.Sub(start)
-	log.Printf("Time needed to evalute pbf file: %s\n", duration)
+	log.Printf("Time needed to read pbf file: %s\n", duration)
 	return nodes, ways
 }
 
@@ -97,7 +83,6 @@ func CreateGeojson(nodes map[int64][]float64, ways map[int64][]int64) []byte {
 
 // merges ways where the end node of the way is the starting node of another way
 func mergeWays(ways map[int64][]int64) {
-
 	toDelete := make(map[int64]bool)
 	for key, value := range ways {
 		// if this way is already merged skip it
@@ -122,6 +107,7 @@ func mergeWays(ways map[int64][]int64) {
 	for key := range toDelete {
 		delete(ways, key)
 	}
+
 }
 
 func Main(path string) [][][]float64 {
@@ -136,6 +122,7 @@ func Main(path string) [][][]float64 {
 
 	oldLength := len(ways)
 
+	startTimeMerge := time.Now()
 	for {
 		mergeWays(ways)
 		if oldLength == len(ways) || len(ways) == 1 {
@@ -143,14 +130,18 @@ func Main(path string) [][][]float64 {
 		}
 		oldLength = len(ways)
 	}
+	log.Printf("Time to merge ways: %s\n", time.Since(startTimeMerge))
 
 	wayNodes := make([][][]float64, len(ways))
-	for i, way := range ways {
+	var curr = 0
+	for _, way := range ways {
 		for _, node := range way {
 			coordinates := nodes[node]
-			wayNodes[i] = append(wayNodes[i], coordinates)
+			wayNodes[curr] = append(wayNodes[curr], coordinates)
 		}
+		curr++
 	}
+	log.Printf("Finished processing pbf file")
 	return wayNodes
 
 }
