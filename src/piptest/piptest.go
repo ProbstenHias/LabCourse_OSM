@@ -223,10 +223,8 @@ func createBoundingBoxes(wayNodes [][][]float64) [][]float64 {
 }
 
 // method to call when we want to do this
-func TopLevel(wayNodes [][][]float64, spherePointsArr [][]float64) [][]float64 {
-	var i int
-	var correctPArray [][]float64
-	// The point above is in water
+func TopLevel(wayNodes [][][]float64, spherePointsArr [][]float64) []bool {
+	//var correctPArray [][]float64
 	start11 := time.Now()
 	boundBoxes := createBoundingBoxes(wayNodes)
 
@@ -259,6 +257,7 @@ func TopLevel(wayNodes [][][]float64, spherePointsArr [][]float64) [][]float64 {
 	start1 := time.Now()
 	results := make(chan []float64, len(spherePointsArr)) //channel for water points from of goroutines are stored here
 	countChan := make(chan bool, len(spherePointsArr))
+	resultsBool := make([]bool, len(spherePointsArr))
 	var wg sync.WaitGroup //wait group for goroutines
 
 	wg.Add(1)
@@ -282,14 +281,16 @@ func TopLevel(wayNodes [][][]float64, spherePointsArr [][]float64) [][]float64 {
 		}
 	}(len(spherePointsArr))
 
-	for i = 0; i < len(spherePointsArr); i++ {
+	for i := 0; i < len(spherePointsArr); i++ {
 
 		wg.Add(1) // add to wait group
 
+		i := i
 		go func(wayNodes [][][]float64, tranNodes [][]float64, boundBox [][]float64, pPoint []float64) { // call goroutine
 			defer wg.Done()
 			if isPointInWater(wayNodes, tranNodes, boundBox, pPoint) {
-				results <- pPoint
+				//results <- pPoint
+				resultsBool[i] = true
 			}
 			countChan <- true // used for the counter when one point is assigned
 		}(wayNodes, tranNodes, boundBoxes, spherePointsArr[i])
@@ -299,14 +300,14 @@ func TopLevel(wayNodes [][][]float64, spherePointsArr [][]float64) [][]float64 {
 	wg.Wait()      //wait for all to finish
 	close(results) // close channel
 
-	for point := range results { //append results
-		correctPArray = append(correctPArray, point)
-	}
+	//for point := range results { //append results
+	//	correctPArray = append(correctPArray, point)
+	//}
 
 	end1 := time.Now()
 	duration1 := end1.Sub(start1)
 	log.Printf("All points locations found in: %s\n", duration1)
 
-	return correctPArray
+	return resultsBool
 
 }
