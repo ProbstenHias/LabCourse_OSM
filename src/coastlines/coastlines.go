@@ -110,7 +110,8 @@ func mergeWays(ways map[int64][]int64) {
 
 }
 
-func Main(path string) [][][]float64 {
+func GenerateCoastlines(path string) [][][]float64 {
+	log.Printf("Starting to read pbf file.\n")
 	nodes, ways := readPBF(path)
 	//fmt.Printf("Ways before merging: %d\n", len(ways))
 	//mergeWays(ways)

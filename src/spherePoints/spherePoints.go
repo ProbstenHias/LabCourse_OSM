@@ -2,13 +2,39 @@ package spherePoints
 
 import (
 	"OSM/src/helpers"
-	"fmt"
 	geojson "github.com/paulmach/go.geojson"
+	"log"
 	"math"
 	"time"
 )
 
 const LowerBound = -85
+
+func GenerateSpherePoints(n int) [][]float64 {
+	startTime := time.Now()
+	var points [][]float64
+	var a = 4 * math.Pi / float64(n)
+	var d = math.Sqrt(a)
+	var mTheta = math.Round(math.Pi / d)
+	var dTheta = math.Pi / mTheta
+	var dPhi = a / dTheta
+	for m := 0.; m < mTheta; m++ {
+		var theta = math.Pi * (m + 0.5) / mTheta
+		var lat = thetaToLat(theta)
+		if lat < LowerBound {
+			continue
+		}
+		var mPhi = math.Round(2 * math.Pi * math.Sin(theta) / dPhi)
+		for n := 0.; n < mPhi; n++ {
+			var phi = 2 * math.Pi * n / mPhi
+			lat, long := anglesToLatLong(theta, phi)
+			point := []float64{lat, long}
+			points = append(points, point)
+		}
+	}
+	log.Printf("Time to generate equidistant points on spere: %s\n", time.Since(startTime))
+	return points
+}
 
 func GeneratePointsOnSphere(n int64) ([][]float64, []Edge) {
 	start := time.Now()
@@ -155,7 +181,7 @@ func GeneratePointsOnSphere(n int64) ([][]float64, []Edge) {
 	}
 	end := time.Now()
 	diff := end.Sub(start)
-	fmt.Printf("time to create points: %s \n", diff)
+	log.Printf("time to create points: %s \n", diff)
 	return points, edges
 }
 
