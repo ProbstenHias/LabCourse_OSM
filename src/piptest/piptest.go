@@ -1,24 +1,27 @@
 package piptest
 
 import (
-	"OSM/src/spherePoints"
 	"fmt"
 	"math"
 	"sync"
 	"time"
 )
 
-func toRad(angle float64) float64 {
+func getNewNorth() []float64 {
+	return []float64{90, 0}
+}
+
+func degToRad(angle float64) float64 {
 	return angle * (math.Pi / 180)
 }
 
 func getAngleToNorth(poleToBe []float64, toTransform []float64) float64 {
 
-	latP := toRad(poleToBe[0])
-	lonP := toRad(poleToBe[1])
+	latP := degToRad(poleToBe[0])
+	lonP := degToRad(poleToBe[1])
 
-	latA := toRad(toTransform[0])
-	lonA := toRad(toTransform[1])
+	latA := degToRad(toTransform[0])
+	lonA := degToRad(toTransform[1])
 
 	if latP == math.Pi/2 {
 		return lonA
@@ -52,20 +55,26 @@ func eastWest(c float64, d float64) int {
 
 }
 
-func checkPointP(pLat float64, pLon float64, xLat float64, xLon float64, lineNodes [][]float64, arrayTranNodes []float64) int {
+func checkPointP(point []float64, polygon [][]float64, tranNodes []float64) int {
 	// return 1 P same as X, 0 for P != X, 2 P on edge, 3 antipodal P and X
+	xLat := getNewNorth()[0]
+	xLon := getNewNorth()[1]
+	pLat := point[0]
+	pLon := point[1]
 	var i int
 	var vBlat, vBlon, tlonB float64
 	var vAlat, vAlon, tlonA float64
+
+	// maybe we dont need this
 	if pLat == -xLat {
-		dellon := toRad(pLon) - toRad(xLon)
-		if dellon < -math.Pi {
-			dellon = dellon + 2*math.Pi
+		delLon := degToRad(pLon) - degToRad(xLon)
+		if delLon < -math.Pi {
+			delLon = delLon + 2*math.Pi
 		}
-		if dellon > math.Pi {
-			dellon = dellon - 2*math.Pi
+		if delLon > math.Pi {
+			delLon = delLon - 2*math.Pi
 		}
-		if dellon == math.Pi || dellon == -math.Pi {
+		if delLon == math.Pi || delLon == -math.Pi {
 			fmt.Printf("P (%f,%f) is antipodal to X (%f,%f). Cannot determine location", pLat, pLon, xLat, xLon)
 
 			return 3 // return 3 for antipodal
@@ -74,26 +83,26 @@ func checkPointP(pLat float64, pLon float64, xLat float64, xLon float64, lineNod
 
 	iCross := 0 //count crossings
 
-	if toRad(pLat) == toRad(xLat) && toRad(pLon) == toRad(xLon) {
+	if degToRad(pLat) == degToRad(xLat) && degToRad(pLon) == degToRad(xLon) {
 		return 1 // X same location as P
 	}
 
-	tLonP := getAngleToNorth([]float64{xLat, xLon}, []float64{pLat, pLon})
+	tLonP := getAngleToNorth(getNewNorth(), []float64{pLat, pLon})
 
-	for i = 0; i < len(lineNodes); i++ {
+	for i = 0; i < len(polygon); i++ {
 
-		vAlat = lineNodes[i][1]
-		vAlon = lineNodes[i][0]
-		tlonA = arrayTranNodes[i]
+		vAlat = polygon[i][0]
+		vAlon = polygon[i][1]
+		tlonA = tranNodes[i]
 
-		if i < len(lineNodes)-1 {
-			vBlat = lineNodes[i+1][1]
-			vBlon = lineNodes[i+1][0]
-			tlonB = arrayTranNodes[i+1]
+		if i < len(polygon)-1 {
+			vBlat = polygon[i+1][0]
+			vBlon = polygon[i+1][1]
+			tlonB = tranNodes[i+1]
 		} else {
-			vBlat = lineNodes[0][1]
-			vBlon = lineNodes[0][0]
-			tlonB = arrayTranNodes[0]
+			vBlat = polygon[0][0]
+			vBlon = polygon[0][1]
+			tlonB = tranNodes[0]
 		}
 
 		isTrike := 0
@@ -139,36 +148,22 @@ func checkPointP(pLat float64, pLon float64, xLat float64, xLon float64, lineNod
 	return 0
 }
 
-func isInBox(boundingBox []float64, pLoc []float64) bool { // p_loc (long,lat)
+func isInBox(boundingBox []float64, pLoc []float64) bool { // p_loc (lat,long)
 
-	if pLoc[0] < boundingBox[0] || pLoc[0] > boundingBox[1] || pLoc[1] < boundingBox[2] || pLoc[1] > boundingBox[3] {
-
-		return false
-	}
-
-	return true
+	return !(pLoc[0] < boundingBox[0] || pLoc[0] > boundingBox[1] || pLoc[1] < boundingBox[2] || pLoc[1] > boundingBox[3])
 
 }
 
-func getPLoc(wayNodes map[int64][][]float64, arrayTranWayNodes map[int64][]float64, boundBox map[int64][]float64, pLoc []float64, x_loc []float64) int8 {
+func isPointInWater(wayNodes [][][]float64, tranNodes [][]float64, boundBox [][]float64, point []float64) bool {
 	//x in water some points might be antipodal. Run again with different x in that case.
 	// return 1 if point in water. 0 otherwise
 	var toRet int8 = 1
 
-	for key, polyNodes := range wayNodes {
+	for i, polygon := range wayNodes {
 
-		if isInBox(boundBox[key], pLoc) {
+		if isInBox(boundBox[i], point) {
 
-			loc := checkPointP(pLoc[1], pLoc[0], x_loc[1], x_loc[0], polyNodes, arrayTranWayNodes[key])
-
-			for {
-				if loc == 3 { // Implemented but never reached because the antipodal to (0,90) is (0,-90) and no points there (hard limited during creation)
-					recalcArrayTranWayNodes := transformNodesPoly(polyNodes, []float64{x_loc[0] - 20, x_loc[1]})   //recalculate transformed polygon
-					loc = checkPointP(pLoc[1], pLoc[0], x_loc[1], x_loc[0]-20, polyNodes, recalcArrayTranWayNodes) //X antipodal to P move X 20 degrees west, still water.
-				} else {
-					break
-				}
-			}
+			loc := checkPointP(point, polygon, tranNodes[i])
 
 			if loc == 0 || loc == 2 { //treating edges as land
 				toRet = 0
@@ -179,87 +174,63 @@ func getPLoc(wayNodes map[int64][][]float64, arrayTranWayNodes map[int64][]float
 		}
 	}
 
-	return toRet
+	return toRet == 1
 }
 
-func transformNodesPoly(polyNodes [][]float64, xLoc []float64) []float64 {
-	var tranNodes []float64
-	var i int
+//
+func transformNodes(wayNodes [][][]float64) [][]float64 {
+	tranNodes := make([][]float64, len(wayNodes))
 
-	for i = 0; i < len(polyNodes); i++ {
-		tranNodes = append(tranNodes, getAngleToNorth([]float64{xLoc[1], xLoc[0]}, []float64{polyNodes[i][1], polyNodes[i][0]}))
-	}
-	return tranNodes
-}
-
-func transformNodes(nodes map[int64][]float64, xLoc []float64) map[int64]float64 {
-	tranNodes := make(map[int64]float64)
-
-	for key, node := range nodes {
-
-		tranNodes[key] = getAngleToNorth([]float64{xLoc[1], xLoc[0]}, []float64{node[1], node[0]})
+	for i, polygon := range wayNodes {
+		for _, coordinates := range polygon {
+			tranNodes[i] = append(tranNodes[i], getAngleToNorth(getNewNorth(), coordinates))
+		}
 	}
 
 	return tranNodes
 }
 
-func getBoundingBox(nodes map[int64][]float64, ways map[int64][]int64) map[int64][]float64 {
-	boundBox := make(map[int64][]float64)
+func createBoundingBoxes(wayNodes [][][]float64) [][]float64 {
+	boundBox := make([][]float64, len(wayNodes))
 
-	for key, NodeIDs := range ways {
-		var minLat = nodes[NodeIDs[0]][1]
-		var maxLat = nodes[NodeIDs[0]][1]
-		var minLon = nodes[NodeIDs[0]][0]
-		var maxLon = nodes[NodeIDs[0]][0]
+	for i, polygon := range wayNodes {
+		var minLat = polygon[0][0]
+		var maxLat = polygon[0][0]
+		var minLon = polygon[0][1]
+		var maxLon = polygon[0][1]
 
-		for _, nodeId := range NodeIDs {
-			if minLat > nodes[nodeId][1] {
-				minLat = nodes[nodeId][1]
+		for _, coordinates := range polygon {
+			if minLat > coordinates[0] {
+				minLat = coordinates[0]
 			}
 
-			if maxLat < nodes[nodeId][1] {
-				maxLat = nodes[nodeId][1]
+			if maxLat < coordinates[0] {
+				maxLat = coordinates[0]
 			}
 
-			if minLon > nodes[nodeId][0] {
-				minLon = nodes[nodeId][0]
+			if minLon > coordinates[1] {
+				minLon = coordinates[1]
 			}
-			if maxLon < nodes[nodeId][0] {
-				maxLon = nodes[nodeId][0]
+			if maxLon < coordinates[1] {
+				maxLon = coordinates[1]
 			}
 		}
 
-		boundBox[key] = []float64{minLon, maxLon, minLat, maxLat}
+		boundBox[i] = []float64{minLat, maxLat, minLon, maxLon}
+
 	}
 	return boundBox
 }
 
-func TopLevel(nodes map[int64][]float64, ways map[int64][]int64, noOfPoints int64) [][]float64 {
+// method to call when we want to do this
+func TopLevel(wayNodes [][][]float64, spherePointsArr [][]float64) [][]float64 {
 	var i int
 	var correctPArray [][]float64
-	xLoc := []float64{0, 90} //choose initial point with known location (long,lat)
 	// The point above is in water
-
-	start1 := time.Now()
-
-	getPArray, _ := spherePoints.GeneratePointsOnSphere(noOfPoints)
-
 	start11 := time.Now()
+	boundBoxes := createBoundingBoxes(wayNodes)
 
-	boundBox := getBoundingBox(nodes, ways)
-
-	tranNodes := transformNodes(nodes, xLoc)
-
-	//transform from way nodes to a single vector in a map containing everything (needed to access the next and previous nodes)
-	wayNodes := make(map[int64][][]float64)
-	arrayTranWayNodes := make(map[int64][]float64)
-	for key, val := range ways {
-
-		for _, nodeId := range val {
-			wayNodes[key] = append(wayNodes[key], nodes[nodeId])
-			arrayTranWayNodes[key] = append(arrayTranWayNodes[key], tranNodes[nodeId])
-		}
-	}
+	tranNodes := transformNodes(wayNodes)
 
 	end11 := time.Now()
 	duration11 := end11.Sub(start11)
@@ -285,9 +256,9 @@ func TopLevel(nodes map[int64][]float64, ways map[int64][]int64, noOfPoints int6
 	// 	}
 	// }
 	////////////// without goroutines (sequential) ////////////////////
-
-	results := make(chan []float64, len(getPArray)) //channel for water points from of goroutines are stored here
-	countChan := make(chan bool, len(getPArray))
+	start1 := time.Now()
+	results := make(chan []float64, len(spherePointsArr)) //channel for water points from of goroutines are stored here
+	countChan := make(chan bool, len(spherePointsArr))
 	var wg sync.WaitGroup //wait group for goroutines
 
 	wg.Add(1)
@@ -309,19 +280,19 @@ func TopLevel(nodes map[int64][]float64, ways map[int64][]int64, noOfPoints int6
 				chanLen = chanLenNow
 			}
 		}
-	}(len(getPArray))
+	}(len(spherePointsArr))
 
-	for i = 0; i < len(getPArray); i++ {
+	for i = 0; i < len(spherePointsArr); i++ {
 
 		wg.Add(1) // add to wait group
 
-		go func(wayNodes map[int64][][]float64, arrayTranWayNodes map[int64][]float64, boundBox map[int64][]float64, pPoint []float64, xLoc []float64) { // call goroutine
+		go func(wayNodes [][][]float64, tranNodes [][]float64, boundBox [][]float64, pPoint []float64) { // call goroutine
 			defer wg.Done()
-			if getPLoc(wayNodes, arrayTranWayNodes, boundBox, pPoint, xLoc) == 1 {
+			if isPointInWater(wayNodes, tranNodes, boundBox, pPoint) {
 				results <- pPoint
 			}
 			countChan <- true // used for the counter when one point is assigned
-		}(wayNodes, arrayTranWayNodes, boundBox, getPArray[i], xLoc)
+		}(wayNodes, tranNodes, boundBoxes, spherePointsArr[i])
 
 	}
 

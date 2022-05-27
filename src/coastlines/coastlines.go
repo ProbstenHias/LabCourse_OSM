@@ -42,7 +42,7 @@ func readPBF(path string) (map[int64][]float64, map[int64][]int64) {
 			switch v := v.(type) {
 			// here we just save the node id as key and the lat and long coordinates as value in the map
 			case *osmpbf.Node:
-				nodes[v.ID] = []float64{v.Lon, v.Lat}
+				nodes[v.ID] = []float64{v.Lat, v.Lon}
 
 			//here we process the ways
 			case *osmpbf.Way:
@@ -86,7 +86,7 @@ func CreateGeojson(nodes map[int64][]float64, ways map[int64][]int64) []byte {
 	for _, val := range ways {
 		var lineNodes [][]float64
 		for _, nodeId := range val {
-			lineNodes = append(lineNodes, nodes[nodeId])
+			lineNodes = append(lineNodes, []float64{nodes[nodeId][1], nodes[nodeId][0]})
 		}
 		feature := geojson.NewLineStringFeature(lineNodes)
 		feature.SetProperty("", 0)
@@ -125,7 +125,7 @@ func mergeWays(ways map[int64][]int64) {
 	}
 }
 
-func Main(path string) (map[int64][]float64, map[int64][]int64) {
+func Main(path string) [][][]float64 {
 	nodes, ways := readPBF(path)
 	//fmt.Printf("Ways before merging: %d\n", len(ways))
 	//mergeWays(ways)
@@ -145,6 +145,13 @@ func Main(path string) (map[int64][]float64, map[int64][]int64) {
 		oldLength = len(ways)
 	}
 
-	return nodes, ways
+	wayNodes := make([][][]float64, len(ways))
+	for i, way := range ways {
+		for _, node := range way {
+			coordinates := nodes[node]
+			wayNodes[i] = append(wayNodes[i], coordinates)
+		}
+	}
+	return wayNodes
 
 }
