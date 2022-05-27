@@ -1,7 +1,6 @@
 package coastlines
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -77,7 +76,7 @@ func readPBF(path string) (map[int64][]float64, map[int64][]int64) {
 	}
 	end := time.Now()
 	duration := end.Sub(start)
-	fmt.Printf("Time needed to evalute pbf file: %s\n", duration)
+	log.Printf("Time needed to evalute pbf file: %s\n", duration)
 	return nodes, ways
 }
 
