@@ -1,7 +1,7 @@
 package piptest
 
 import (
-	"fmt"
+	"log"
 	"math"
 	"sync"
 	"time"
@@ -75,7 +75,7 @@ func checkPointP(point []float64, polygon [][]float64, tranNodes []float64) int 
 			delLon = delLon - 2*math.Pi
 		}
 		if delLon == math.Pi || delLon == -math.Pi {
-			fmt.Printf("P (%f,%f) is antipodal to X (%f,%f). Cannot determine location", pLat, pLon, xLat, xLon)
+			log.Printf("P (%f,%f) is antipodal to X (%f,%f). Cannot determine location", pLat, pLon, xLat, xLon)
 
 			return 3 // return 3 for antipodal
 		}
@@ -234,7 +234,7 @@ func TopLevel(wayNodes [][][]float64, spherePointsArr [][]float64) [][]float64 {
 
 	end11 := time.Now()
 	duration11 := end11.Sub(start11)
-	fmt.Printf("Preprocessing of PIP: %s\n", duration11)
+	log.Printf("Preprocessing of PIP: %s\n", duration11)
 
 	////////////// without goroutines (sequential) ////////////////////
 	// for i = 0; i < len(get_p_array); i++ {
@@ -271,12 +271,12 @@ func TopLevel(wayNodes [][][]float64, spherePointsArr [][]float64) [][]float64 {
 		for {
 			chanLenNow = len(countChan)
 			if chanLenNow == lenPArray {
-				fmt.Printf("%d/%d\n", lenPArray, lenPArray)
+				log.Printf("%d/%d\n", lenPArray, lenPArray)
 				break
 			}
 			if chanLen < chanLenNow {
 				counter += chanLenNow - chanLen
-				fmt.Printf("%d/%d\r", counter, lenPArray)
+				log.Printf("%d/%d\r", counter, lenPArray)
 				chanLen = chanLenNow
 			}
 		}
@@ -305,7 +305,7 @@ func TopLevel(wayNodes [][][]float64, spherePointsArr [][]float64) [][]float64 {
 
 	end1 := time.Now()
 	duration1 := end1.Sub(start1)
-	fmt.Printf("All points locations found in: %s\n", duration1)
+	log.Printf("All points locations found in: %s\n", duration1)
 
 	return correctPArray
 

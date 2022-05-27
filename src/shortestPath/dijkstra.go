@@ -5,9 +5,11 @@ import (
 	"container/heap"
 	"log"
 	"math"
+	"time"
 )
 
 func Dijkstra(start int32, end int32, graph datastructures.Graph) (int32, []int32) {
+	startTime := time.Now()
 	dist := make([]int32, len(graph.Nodes))
 	for i := 0; i < len(dist); i++ {
 		dist[i] = math.MaxInt32
@@ -29,6 +31,7 @@ func Dijkstra(start int32, end int32, graph datastructures.Graph) (int32, []int3
 		prev[node.Id] = node.Prev
 
 		if node.Id == end {
+			log.Printf("Time to calculate dijkstra: %s\n", time.Since(startTime))
 			return node.Dist, prev
 		}
 		for _, e := range graph.GetAllOutgoingEdgesOfNode(node.Id) {
@@ -44,7 +47,6 @@ func Dijkstra(start int32, end int32, graph datastructures.Graph) (int32, []int3
 			})
 		}
 	}
-	log.Fatalf("No path from %d to %d could be found.", start, end)
-
+	log.Printf("No path from %d to %d could be found.\n", start, end)
 	return dist[end], prev
 }

@@ -13,7 +13,7 @@ import (
 func CreateGraphFromFile(pathToFile string) datastructures.Graph {
 	readFile, err := os.Open(pathToFile)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	fileScanner := bufio.NewScanner(readFile)
