@@ -47,10 +47,14 @@ func CreateGraphFromFile(pathToFile string) datastructures.Graph {
 	return graph
 }
 
-func createFileFromGraph(graph datastructures.Graph, pathToFile string) {
+func CreateFileFromGraph(graph datastructures.Graph, pathToFile string) {
 	f, _ := os.Create(pathToFile)
 	w := bufio.NewWriter(f)
-	linesToWrite := []string{"# a comment for good measure\n", "\n", string(rune(len(graph.Nodes))), "\n", string(rune(len(graph.Edges))), "\n"}
+	linesToWrite := []string{"# a comment for good measure\n",
+		"\n",
+		fmt.Sprintln(len(graph.Nodes)),
+		fmt.Sprintln(len(graph.Edges))}
+
 	for _, line := range linesToWrite {
 		_, err := w.WriteString(line)
 		if err != nil {
@@ -68,10 +72,10 @@ func createFileFromGraph(graph datastructures.Graph, pathToFile string) {
 	}
 	var currFrom = 0
 	for i := 0; i < len(graph.Edges); i++ {
-		for int32(i) >= graph.Offset[currFrom+1] {
+		for currFrom+1 < len(graph.Nodes) && int32(i) >= graph.Offset[currFrom+1] {
 			currFrom++
 		}
-		line := fmt.Sprintf("%d %d %d", currFrom, graph.Edges[i], graph.Distance[i])
+		line := fmt.Sprintf("%d %d %d\n", currFrom, graph.Edges[i], graph.Distance[i])
 		_, err := w.WriteString(line)
 		if err != nil {
 			log.Fatalf("Got error while writing to a file. Err: %s", err.Error())
