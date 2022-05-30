@@ -1,4 +1,4 @@
-var map = L.map('map',{
+var map = L.map('map', {
     minZoom: 3
 })
 map.setView([0, 0], 0);
@@ -27,31 +27,47 @@ var redIcon = new L.Icon({
 
 
 let start
+let startIdx
 let end
-
+let endIdx
 let line
 
-function setStartingPoint(e) {
-    start = L.marker();
-    start
-        .setLatLng(e.latlng)
-        .setIcon(greenIcon)
-        .addTo(map)
-        .on("click", onHoverMarker(start))
-}
+function setPoint(e, isStart) {
+    let point = L.marker()
+    point.setLatLng(e.latlng)
+    if (isStart) {
+        fetchPoint(point, isStart)
+    } else {
+        fetchPoint(point, isStart).then(fetchRoute);
+    }
 
-function setEndingPoint(e) {
-    end = L.marker();
-    end
-        .setLatLng(e.latlng)
-        .setIcon(redIcon)
-        .addTo(map)
-        .on("click", onHoverMarker(end))
 }
 
 
-function onHoverMarker(point) {
-    return point.bindPopup(`Lat: ${point.getLatLng().lat}<br>Lng: ${point.getLatLng().lng}`).openPopup();
+function onEachLineFeature(feature, layer) {
+    if (feature.properties && feature.properties.popupContent) {
+        layer.bindPopup(feature.properties.popupContent);
+    }
+}
+
+function onEachStartFeature(feature, layer) {
+    layer.setIcon(greenIcon)
+    if (feature.properties && feature.properties.popupContent) {
+        layer.bindPopup(feature.properties.popupContent);
+    }
+    if (feature.properties && feature.properties.index) {
+        startIdx = feature.properties.index
+    }
+}
+
+function onEachEndFeature(feature, layer) {
+    layer.setIcon(redIcon)
+    if (feature.properties && feature.properties.popupContent) {
+        layer.bindPopup(feature.properties.popupContent);
+    }
+    if (feature.properties && feature.properties.index) {
+        endIdx = feature.properties.index
+    }
 }
 
 function OnMapClick(e) {
@@ -64,10 +80,9 @@ function OnMapClick(e) {
         return;
     }
     if (start == null) {
-        setStartingPoint(e);
+        setPoint(e, true);
     } else if (end == null) {
-        setEndingPoint(e);
-        fetchRoute();
+        setPoint(e, false);
     } else {
         map.removeLayer(end);
         end = null;
@@ -75,18 +90,60 @@ function OnMapClick(e) {
         start = null
         map.removeLayer(line)
         line = null
-        setStartingPoint(e);
+        setPoint(e, true);
     }
 }
 
 map.on("click", OnMapClick)
 
+
+function fetchPoint(point, isStart) {
+    const data = {
+        lat: point.getLatLng().lat, lng: point.getLatLng().lng
+    };
+    //build URL
+    let url = new URL("http://localhost:8080/point");
+    for (let k in data) {
+        url.searchParams.append(k, data[k]);
+    }
+    console.log("fetching data from url: " + url)
+
+    return fetch(url)
+
+        .then((result) => {
+            console.log(result);
+            if (result.status !== 200) {
+                throw new Error("Bad Server Response");
+            }
+            return result.text();
+        })
+
+        .then((response) => {
+            let fc = JSON.parse(response)
+            if (isStart) {
+                start = L.geoJSON(fc, {
+                    onEachFeature: onEachStartFeature
+                })
+                // start.setIcon(greenIcon)
+                start.addTo(map)
+
+            } else {
+                end = L.geoJSON(fc, {
+                    onEachFeature: onEachEndFeature
+                })
+                // end.setIcon(redIcon)
+                end.addTo(map)
+            }
+        })
+
+        .catch((error) => {
+            console.log(error);
+        });
+}
+
 function fetchRoute() {
     const data = {
-        startLat: start.getLatLng().lat,
-        startLng: start.getLatLng().lng,
-        endLat: end.getLatLng().lat,
-        endLng: end.getLatLng().lng
+        startIdx: startIdx, endIdx: endIdx
     };
 
     // build URL
@@ -100,15 +157,19 @@ function fetchRoute() {
 
         .then((result) => {
             console.log(result);
-            if (result.status !== 200) {
+            if (result.status !== 200 && result.status !== 204) {
                 throw new Error("Bad Server Response");
+            }
+            if (result.status === 204) {
+                throw new Error("No Path Found")
             }
             return result.text();
         })
 
         .then((response) => {
-            console.log(response);
-            line = L.geoJSON(JSON.parse(response));
+            line = L.geoJSON(JSON.parse(response), {
+                onEachFeature: onEachLineFeature
+            });
             line.addTo(map)
         })
 

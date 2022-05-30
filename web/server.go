@@ -25,7 +25,7 @@ func Main(pathToFmiFile string) {
 }
 func pointHandler(graph datastructures.Graph) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/route" {
+		if r.URL.Path != "/point" {
 			http.Error(w, "404 not found.", http.StatusNotFound)
 			return
 		}
@@ -57,23 +57,19 @@ func routeHandler(graph datastructures.Graph) http.HandlerFunc {
 			return
 		}
 		query := r.URL.Query()
-		startLat, _ := strconv.ParseFloat(query["startLat"][0], 64)
-		startLng, _ := strconv.ParseFloat(query["startLng"][0], 64)
-		endLat, _ := strconv.ParseFloat(query["endLat"][0], 64)
-		endLng, _ := strconv.ParseFloat(query["endLng"][0], 64)
 
-		start := []float64{startLat, startLng}
-		startIdx, _ := helpers.GetClosestNodeInGraph(start, graph)
-		end := []float64{endLat, endLng}
-		endIdx, _ := helpers.GetClosestNodeInGraph(end, graph)
+		startIdx, _ := strconv.Atoi(query["startIdx"][0])
+		startIdx32 := int32(startIdx)
+		endIdx, _ := strconv.Atoi(query["endIdx"][0])
+		endIdx32 := int32(endIdx)
 
-		distance, prev := shortestPath.Dijkstra(startIdx, endIdx, graph)
+		distance, prev := shortestPath.Dijkstra(startIdx32, endIdx32, graph)
 		if distance == math.MaxInt32 {
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}
 
-		lineNodes := helpers.CreatePathFromPrev(startIdx, endIdx, prev, graph)
+		lineNodes := helpers.CreatePathFromPrev(startIdx32, endIdx32, prev, graph)
 		rawJson := helpers.NodesToLineString(lineNodes, distance)
 
 		w.WriteHeader(http.StatusOK)
