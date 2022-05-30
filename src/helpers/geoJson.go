@@ -22,10 +22,12 @@ func NodesToLineString(nodes [][]float64, popupContent int32) []byte {
 	return rawJson
 }
 
-func NodeToPoint(node []float64, idx int32) []byte {
+func NodeToPoint(node []float64, index int32) []byte {
 	fc := geojson.NewFeatureCollection()
 	feature := geojson.NewPointFeature([]float64{node[1], node[0]})
-	feature.SetProperty("idx", idx)
+	popupContent := fmt.Sprintf("Lat: %f\nLong: %f\nIndex: %d", node[0], node[1], index)
+	feature.SetProperty("popupContent", popupContent)
+	feature.SetProperty("index", index)
 	fc.AddFeature(feature)
 	rawJson, _ := fc.MarshalJSON()
 	return rawJson
