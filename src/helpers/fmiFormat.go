@@ -113,10 +113,11 @@ func createEdgesFromFile(edgeCount int, graph datastructures.Graph, idToIdx map[
 		dist, _ := strconv.Atoi(line[2])
 		graph.Edges[i] = int32(to)
 		graph.Distance[i] = int32(dist)
-		if fr == from {
-			continue
+		// for all nodes with no edges add offset as well
+		for j := from + 1; j <= fr; j++ {
+			graph.Offset[j] = int32(i)
+
 		}
-		graph.Offset[fr] = int32(i)
 		from = fr
 	}
 }
