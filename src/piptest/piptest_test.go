@@ -14,10 +14,11 @@ func TestTopLevel(t *testing.T) {
 		{-79.6674383780146, -56.25000000000001},
 		{84.40594104126978, 5.625},
 		{75.60680105154306, 60.8203125},
+		{42.4719, -108},
 	}
-	var correctClassification = []bool{false, true, true, false, false, true, false}
+	var correctClassification = []bool{false, true, true, false, false, true, false, false}
 
-	wayNodes := coastlines.GenerateCoastlines("D:/OneDrive - stud.uni-stuttgart.de/Uni/10. Semester/FP-OSM/pbf files/planet-coastlinespbf.sec")
+	wayNodes := coastlines.GenerateCoastlines("E:/Classes Infotech/4th Semster/Fachpraktika/Code/data/planet-coastlines.pbf")
 	results := TopLevel(wayNodes, coordinates)
 
 	for i, elem := range results {

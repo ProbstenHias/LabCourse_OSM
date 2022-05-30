@@ -7,9 +7,11 @@ import (
 	"math"
 	"sort"
 	"time"
+
+	geojson "github.com/paulmach/go.geojson"
 )
 
-const LowerBound = -85
+const LowerBound = -80 // from -90 (South Pole) until around -80 Latitute, Antartica land so no points needed to be created
 
 func GenerateSpherePoints(n int) [][]float64 {
 	startTime := time.Now()

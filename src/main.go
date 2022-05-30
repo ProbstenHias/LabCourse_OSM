@@ -23,8 +23,8 @@ func main() {
 
 	//web.GenerateCoastlines("D:/OneDrive - stud.uni-stuttgart.de/Uni/10. Semester/FP-OSM/pbf files/oceanfmi.sec")
 
-	wayNodes := coastlines.GenerateCoastlines("D:/OneDrive - stud.uni-stuttgart.de/Uni/10. Semester/FP-OSM/pbf files/planet-coastlinespbf.sec")
-	points := spherePoints.GenerateSpherePoints(1e6)
+	wayNodes := coastlines.GenerateCoastlines("E:/Classes Infotech/4th Semster/Fachpraktika/Code/data/planet-coastlines.pbf")
+	points := spherePoints.GenerateSpherePoints(1e4)
 	piptest.TopLevel(wayNodes, points)
 
 }

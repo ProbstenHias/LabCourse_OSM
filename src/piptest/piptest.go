@@ -1,6 +1,7 @@
 package piptest
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"sync"
@@ -8,7 +9,7 @@ import (
 )
 
 func getNewNorth() []float64 {
-	return []float64{90, 0}
+	return []float64{89, 1}
 }
 
 func degToRad(angle float64) float64 {
@@ -65,7 +66,7 @@ func checkPointP(point []float64, polygon [][]float64, tranNodes []float64) int 
 	var vBlat, vBlon, tlonB float64
 	var vAlat, vAlon, tlonA float64
 
-	// maybe we dont need this
+	// Check for antipodality. Not used because there are no antipodal points (close to south pole) created
 	//if pLat == -xLat {
 	//	delLon := degToRad(pLon) - degToRad(xLon)
 	//	if delLon < -math.Pi {
@@ -157,25 +158,21 @@ func isInBox(boundingBox []float64, pLoc []float64) bool { // p_loc (lat,long)
 func isPointInWater(wayNodes [][][]float64, tranNodes [][]float64, boundBox [][]float64, point []float64) bool {
 	//x in water some points might be antipodal. Run again with different x in that case.
 	// return 1 if point in water. 0 otherwise
-	var toRet int8 = 1
 
 	for i, polygon := range wayNodes {
 
 		if isInBox(boundBox[i], point) {
-
 			loc := checkPointP(point, polygon, tranNodes[i])
 
 			if loc == 0 || loc == 2 { //treating edges as land
-				toRet = 0
-				break
+				return false
 			}
 		}
-	}
 
-	return toRet == 1
+	}
+	return true
 }
 
-//
 func transformNodes(wayNodes [][][]float64) [][]float64 {
 	tranNodes := make([][]float64, len(wayNodes))
 
@@ -220,9 +217,29 @@ func createBoundingBoxes(wayNodes [][][]float64) [][]float64 {
 	return boundBox
 }
 
+func progressBar(counter int, max_len int) string { //Progress bar to show the progess of PIP
+	bar_len := 60
+
+	perc_done := float64(counter) / float64(max_len)
+
+	filled := int(math.Ceil(float64(bar_len) * perc_done))
+
+	var bar string = "["
+
+	for i := 0; i < bar_len; i++ {
+		if i < filled {
+			bar += string('#')
+		} else {
+			bar += string(' ')
+		}
+	}
+	bar += string(']')
+
+	return bar
+}
+
 // method to call when we want to do this
 func TopLevel(wayNodes [][][]float64, spherePointsArr [][]float64) []bool {
-	//var correctPArray [][]float64
 	start11 := time.Now()
 	boundBoxes := createBoundingBoxes(wayNodes)
 
@@ -233,13 +250,29 @@ func TopLevel(wayNodes [][][]float64, spherePointsArr [][]float64) []bool {
 	log.Printf("Preprocessing of PIP: %s\n", duration11)
 
 	start1 := time.Now()
-	results := make(chan []float64, len(spherePointsArr)) //channel for water points from of goroutines are stored here
-	countChan := make(chan bool, len(spherePointsArr))
-	resultsBool := make([]bool, len(spherePointsArr))
-	var wg sync.WaitGroup //wait group for goroutines
 
+	resultsBool := make([]bool, len(spherePointsArr))
+
+	//////// Sequential //////
+	// for i := 0; i < len(spherePointsArr); i++ {
+	// 	if isPointInWater(wayNodes, tranNodes, boundBoxes, spherePointsArr[i]) {
+	// 		//results <- pPoint
+	// 		resultsBool[i] = true
+	// 	}
+	// }
+	/////// Sequential end ////
+
+	//// Goroutines /////
+	//results := make(chan []float64, len(spherePointsArr)) //channel for water points from of goroutines are stored here
+	//Channel only needed when actual results are required to be printed on file.
+
+	countChan := make(chan bool, len(spherePointsArr)) //channel used by the counter and progress bar
+
+	fmt.Printf("Performing Point in Polygon Test\n")
+
+	var wg sync.WaitGroup //wait group for goroutines
 	wg.Add(1)
-	go func(lenPArray int) {
+	go func(lenPArray int) { //Goroutine to print status and update counter and progress bar
 		defer wg.Done()
 		chanLen := len(countChan)
 		chanLenNow := 0
@@ -247,13 +280,15 @@ func TopLevel(wayNodes [][][]float64, spherePointsArr [][]float64) []bool {
 
 		for {
 			chanLenNow = len(countChan)
-			if chanLenNow == lenPArray {
-				log.Printf("%d/%d\n", lenPArray, lenPArray)
+			if chanLenNow == len(spherePointsArr) {
+				bar := progressBar(chanLenNow, len(spherePointsArr))
+				fmt.Printf("%s %d/%d\n", bar, len(spherePointsArr), len(spherePointsArr))
 				break
 			}
 			if chanLen < chanLenNow {
 				counter += chanLenNow - chanLen
-				log.Printf("%d/%d\r", counter, lenPArray)
+				bar := progressBar(counter, len(spherePointsArr))
+				fmt.Printf("%s %d/%d\r", bar, counter, len(spherePointsArr))
 				chanLen = chanLenNow
 			}
 		}
@@ -275,12 +310,20 @@ func TopLevel(wayNodes [][][]float64, spherePointsArr [][]float64) []bool {
 
 	}
 
-	wg.Wait()      //wait for all to finish
-	close(results) // close channel
+	wg.Wait() //wait for all to finish
+	//close(results) // close channel 1
+	close(countChan)
+	///// Goroutines end /////
 
-	//for point := range results { //append results
-	//	correctPArray = append(correctPArray, point)
-	//}
+	//// Print points to file //////
+	// var correctPArray [][]float64
+	// for point := range results { //append results
+	// 	correctPArray = append(correctPArray, point)
+	// }
+	// raw_json := helpers.NodesToPoints(correctPArray)
+	// path := "E:/Classes Infotech/4th Semster/Fachpraktika/Code/OSM/out/points.json"
+	// helpers.GeoJsonToFile(raw_json, path)
+	//// Print points to file end //////
 
 	end1 := time.Now()
 	duration1 := end1.Sub(start1)
