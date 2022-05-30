@@ -1,6 +1,8 @@
 package helpers
 
-import "OSM/src/datastructures"
+import (
+	"OSM/src/backend/datastructures"
+)
 
 func CreatePathFromPrev(start, end int32, prev []int32, graph datastructures.Graph) [][]float64 {
 	var path [][]float64

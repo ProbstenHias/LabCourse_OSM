@@ -1,14 +1,14 @@
 package helpers
 
 import (
-	"OSM/src/datastructures"
+	"OSM/src/backend/datastructures"
 	"fmt"
 	geojson "github.com/paulmach/go.geojson"
 	"log"
 	"os"
 )
 
-func NodesToLineString(nodes [][]float64, popupContent int32) []byte {
+func NodesToLineStringGeoJson(nodes [][]float64, popupContent int32) []byte {
 	lineNodes := make([][]float64, len(nodes))
 	for i, elem := range nodes {
 		lineNodes[i] = []float64{elem[1], elem[0]}
@@ -22,7 +22,7 @@ func NodesToLineString(nodes [][]float64, popupContent int32) []byte {
 	return rawJson
 }
 
-func NodeToPoint(node []float64, index int32) []byte {
+func NodeToPointGeoJson(node []float64, index int32) []byte {
 	fc := geojson.NewFeatureCollection()
 	feature := geojson.NewPointFeature([]float64{node[1], node[0]})
 	popupContent := fmt.Sprintf("Lat: %f\nLong: %f\nIndex: %d", node[0], node[1], index)
@@ -33,7 +33,7 @@ func NodeToPoint(node []float64, index int32) []byte {
 	return rawJson
 }
 
-func NodesToPoints(nodes [][]float64) []byte {
+func NodesToPointsGeoJson(nodes [][]float64) []byte {
 	fc := geojson.NewFeatureCollection()
 	for _, node := range nodes {
 		feature := geojson.NewPointFeature([]float64{node[1], node[0]})

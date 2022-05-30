@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	"OSM/src/datastructures"
+	"OSM/src/backend/datastructures"
 	"log"
 	"math"
 	"time"

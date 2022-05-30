@@ -1,7 +1,7 @@
 package shortestPath
 
 import (
-	"OSM/src/helpers"
+	"OSM/src/backend/helpers"
 	"log"
 	"math/rand"
 	"testing"

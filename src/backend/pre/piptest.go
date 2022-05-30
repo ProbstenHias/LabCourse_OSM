@@ -1,4 +1,4 @@
-package piptest
+package pre
 
 import (
 	"fmt"
@@ -238,7 +238,7 @@ func progressBar(counter int, max_len int) string { //Progress bar to show the p
 	return bar
 }
 
-// method to call when we want to do this
+// TopLevel method to call when we want to do this
 func TopLevel(wayNodes [][][]float64, spherePointsArr [][]float64) []bool {
 	start11 := time.Now()
 	boundBoxes := createBoundingBoxes(wayNodes)

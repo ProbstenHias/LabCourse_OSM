@@ -1,14 +1,12 @@
-package spherePoints
+package pre
 
 import (
-	"OSM/src/datastructures"
-	"OSM/src/helpers"
+	"OSM/src/backend/datastructures"
+	"OSM/src/backend/helpers"
 	"log"
 	"math"
 	"sort"
 	"time"
-
-	geojson "github.com/paulmach/go.geojson"
 )
 
 const LowerBound = -80 // from -90 (South Pole) until around -80 Latitute, Antartica land so no points needed to be created

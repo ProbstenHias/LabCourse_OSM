@@ -1,7 +1,6 @@
-package piptest
+package pre
 
 import (
-	"OSM/src/coastlines"
 	"testing"
 )
 
@@ -18,7 +17,7 @@ func TestTopLevel(t *testing.T) {
 	}
 	var correctClassification = []bool{false, true, true, false, false, true, false, false}
 
-	wayNodes := coastlines.GenerateCoastlines("E:/Classes Infotech/4th Semster/Fachpraktika/Code/data/planet-coastlines.pbf")
+	wayNodes := GenerateCoastlines("E:/Classes Infotech/4th Semster/Fachpraktika/Code/data/planet-coastlines.pbf")
 	results := TopLevel(wayNodes, coordinates)
 
 	for i, elem := range results {
