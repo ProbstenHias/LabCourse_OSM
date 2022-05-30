@@ -2,19 +2,21 @@ package helpers
 
 import (
 	"OSM/src/datastructures"
+	"fmt"
 	geojson "github.com/paulmach/go.geojson"
 	"log"
 	"os"
 )
 
-func NodesToLineString(nodes [][]float64, distance int32) []byte {
+func NodesToLineString(nodes [][]float64, popupContent int32) []byte {
 	lineNodes := make([][]float64, len(nodes))
 	for i, elem := range nodes {
 		lineNodes[i] = []float64{elem[1], elem[0]}
 	}
 	fc := geojson.NewFeatureCollection()
 	feature := geojson.NewLineStringFeature(lineNodes)
-	feature.SetProperty("distance", distance)
+	content := fmt.Sprintf("Distance: %dm", popupContent)
+	feature.SetProperty("popupContent", content)
 	fc.AddFeature(feature)
 	rawJson, _ := fc.MarshalJSON()
 	return rawJson
