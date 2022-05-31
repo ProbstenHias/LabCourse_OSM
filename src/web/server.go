@@ -14,7 +14,7 @@ import (
 func Main(pathToFmiFile string, port string) {
 	graph := helpers2.CreateGraphFromFile(pathToFmiFile)
 
-	fileServer := http.FileServer(http.Dir("web/static"))
+	fileServer := http.FileServer(http.Dir("./src/web/static"))
 	http.Handle("/", fileServer)
 	http.HandleFunc("/route", routeHandler(graph))
 	http.HandleFunc("/point", pointHandler(graph))
