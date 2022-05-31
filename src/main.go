@@ -2,19 +2,22 @@ package main
 
 import (
 	"OSM/src/backend/helpers"
-	pre2 "OSM/src/backend/pre"
+	"OSM/src/backend/pre"
+	"log"
 	"os"
+	"path"
 )
 
-const N = 1e6
+const N = 1e3
 
 func main() {
-	path := os.Getenv("PBF")
-
-	wayNodes := pre2.GenerateCoastlines(path)
-	points := pre2.GenerateSpherePoints(N)
-	classification := pre2.TopLevel(wayNodes, points)
-	graph := pre2.GenerateGraphFromPoints(N, points, classification)
-	helpers.CreateFileFromGraph(graph, "./out/graph.fmi")
-
+	pathToPBF := os.Args[1]
+	pathToFmi := path.Dir(pathToPBF)
+	pathToFmi = pathToFmi + "/graph.fmi"
+	log.Println(pathToFmi)
+	wayNodes := pre.GenerateCoastlines(pathToPBF)
+	points := pre.GenerateSpherePoints(N)
+	classification := pre.TopLevel(wayNodes, points)
+	graph := pre.GenerateGraphFromPoints(N, points, classification)
+	helpers.CreateFileFromGraph(graph, pathToFmi)
 }

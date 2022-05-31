@@ -85,6 +85,7 @@ func CreateFileFromGraph(graph datastructures.Graph, pathToFile string) {
 	if err != nil {
 		log.Fatalf("Got error while flushing a filewriter. Err: %s", err.Error())
 	}
+	log.Printf("Writing graph.fmi file to %s\n", pathToFile)
 }
 
 func createNodesFromFile(nodeCount int, graph datastructures.Graph, idToIdx map[int]int, fileScanner *bufio.Scanner) {
