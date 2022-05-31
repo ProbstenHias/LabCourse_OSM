@@ -8,7 +8,7 @@ import (
 	"path"
 )
 
-const N = 1e3
+const N = 1e6
 
 func main() {
 	pathToPBF := os.Args[1]
