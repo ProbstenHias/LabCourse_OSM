@@ -4,14 +4,13 @@ import (
 	"OSM/src/backend/datastructures"
 	helpers2 "OSM/src/backend/helpers"
 	"OSM/src/backend/shortestPath"
-	"fmt"
 	"log"
 	"math"
 	"net/http"
 	"strconv"
 )
 
-func Main(pathToFmiFile string, port string) {
+func Main(pathToFmiFile string) {
 	graph := helpers2.CreateGraphFromFile(pathToFmiFile)
 
 	fileServer := http.FileServer(http.Dir("./src/web/static"))
@@ -19,8 +18,8 @@ func Main(pathToFmiFile string, port string) {
 	http.HandleFunc("/route", routeHandler(graph))
 	http.HandleFunc("/point", pointHandler(graph))
 
-	log.Printf("Starting server at port %s\n", port)
-	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil); err != nil {
+	log.Printf("Starting server at port 8081\n")
+	if err := http.ListenAndServe(":8081", nil); err != nil {
 		log.Fatal(err)
 	}
 }

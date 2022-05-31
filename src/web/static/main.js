@@ -102,7 +102,7 @@ function fetchPoint(point, isStart) {
         lat: point.getLatLng().lat, lng: point.getLatLng().lng
     };
     //build URL
-    let url = new URL("http://localhost:8080/point");
+    let url = new URL("http://localhost:8081/point");
     for (let k in data) {
         url.searchParams.append(k, data[k]);
     }
@@ -147,7 +147,7 @@ function fetchRoute() {
     };
 
     // build URL
-    let url = new URL("http://localhost:8080/route");
+    let url = new URL("http://localhost:8081/route");
     for (let k in data) {
         url.searchParams.append(k, data[k]);
     }

@@ -7,6 +7,5 @@ import (
 
 func main() {
 	pathToFmi := os.Args[1]
-	port := os.Args[2]
-	web.Main(pathToFmi, port)
+	web.Main(pathToFmi)
 }

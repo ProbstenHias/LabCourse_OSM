@@ -4,7 +4,7 @@ Repository for 'Fachpraktikum Algorithms on OpenStreetMap data' at University St
 # Instructions
 ### Install Golang
 At first, you have to install golang on your System.<br>
-Version 1.18 is recommend.<br>
+Version 1.18 is recommended.<br>
 For ubuntu you can follow [this](https://cmatskas.com/install-go-on-wsl-ubuntu-from-the-command-line/) blog post.
 ### Generate FMI file from PBF file
     1. Navigate into the project folder, so that you are in the directory OSM.
@@ -15,11 +15,11 @@ For ubuntu you can follow [this](https://cmatskas.com/install-go-on-wsl-ubuntu-f
 ### Run Webserver
     1. Navigate into the project folder, so that you are in the directory OSM.
     2. Build the project with command: go build ./src/mainWeb.go
-    3. Ron project with command: ./mainWeb {pathToFmiFile} {port}
-    4. The GUI can be found at localhost/{port}
+    3. Ron project with command: ./mainWeb {pathToFmiFile}
+    4. The GUI can be found at localhost/8081
 
 ### How to use GUI
-    - In your browser navigate to localhost/{port}
+    - In your browser navigate to localhost/8081
     - To set a starting point just click anywhere on the map
     - To create a ending point click anywhere on the map
     - Both points will snap to the closest point in water that was created in Task 3
