@@ -35,13 +35,13 @@ func Dijkstra(start int32, end int32, graph datastructures2.Graph) (int32, []int
 			return node.Dist, prev
 		}
 		for _, e := range graph.GetAllOutgoingEdgesOfNode(node.Id) {
-
+			var to = graph.Edges[e]
 			var alt = node.Dist + graph.Distance[e]
-			if alt >= dist[graph.Edges[e]] {
+			if alt >= dist[to] {
 				continue
 			}
 			heap.Push(&pq, &datastructures2.Item{
-				Id:   graph.Edges[e],
+				Id:   to,
 				Dist: alt,
 				Prev: node.Id,
 			})
