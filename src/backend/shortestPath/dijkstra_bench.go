@@ -9,20 +9,16 @@ import (
 	"time"
 )
 
-const outPath = "C:/Users/Matthias/GolandProjects/LabCourse_OSM/out/dijkstra_bench.csv"
-const PathToFmiFile = "C:/Users/Matthias/GolandProjects/LabCourse_OSM/in/oceanfmi.sec"
-const N = 1000
-
-func BenchDijkstra() {
-	graph := helpers.CreateGraphFromFile(PathToFmiFile)
-	var times []string
+func BenchDijkstra(outPath, pathToFmiFile string, N int) {
+	graph := helpers.CreateGraphFromFile(pathToFmiFile)
+	var timesAndPulls [][]string
 	for i := 0; i < N; i++ {
 		randomStart := rand.Intn(len(graph.Nodes) - 1)
 		randomDest := rand.Intn(len(graph.Nodes) - 1)
 		start := time.Now()
-		Dijkstra(int32(randomStart), int32(randomDest), graph)
+		_, _, numberOfHeapPulls := DijkstraWithNumberOfHeapPulls(int32(randomStart), int32(randomDest), graph)
 		diff := time.Since(start).Microseconds()
-		times = append(times, fmt.Sprint(diff))
+		timesAndPulls = append(timesAndPulls, []string{fmt.Sprint(diff), fmt.Sprint(numberOfHeapPulls)})
 	}
 	f, e := os.Create(outPath)
 	if e != nil {
@@ -30,7 +26,7 @@ func BenchDijkstra() {
 	}
 	writer := csv.NewWriter(f)
 
-	e = writer.Write(times)
+	e = writer.WriteAll(timesAndPulls)
 	if e != nil {
 		fmt.Println(e)
 	}
