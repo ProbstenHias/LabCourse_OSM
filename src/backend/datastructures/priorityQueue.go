@@ -1,12 +1,13 @@
 package datastructures
 
-// An Item is something we manage in a Dist queue.
+// An Item is something we manage in a Prio queue.
 type Item struct {
 	Id   int32 // The Id of the item; arbitrary.
-	Dist int32 // The Dist of the item in the queue.
+	Prio int32 // The Prio of the item in the queue.
 	// The Index is needed by update and is maintained by the heap.Interface methods.
 	Prev  int32
-	Index int // The Index of the item in the heap.
+	Index int   // The Index of the item in the heap.
+	Dist  int32 // the distance we need for a star
 }
 
 // A PriorityQueue implements heap.Interface and holds Items.
@@ -15,8 +16,8 @@ type PriorityQueue []*Item
 func (pq PriorityQueue) Len() int { return len(pq) }
 
 func (pq PriorityQueue) Less(i, j int) bool {
-	// We want Pop to give us the lowest, not highest, Dist, so we use greater than here.
-	return pq[i].Dist < pq[j].Dist
+	// We want Pop to give us the lowest, not highest, Prio, so we use greater than here.
+	return pq[i].Prio < pq[j].Prio
 }
 
 func (pq PriorityQueue) Swap(i, j int) {
