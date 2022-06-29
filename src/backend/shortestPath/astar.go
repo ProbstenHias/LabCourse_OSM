@@ -17,7 +17,9 @@ func manhattenDistance(point1, point2 []float64) int32 {
 }
 
 func AStar(start int32, end int32, graph datastructures2.Graph) (int32, []int32, int) {
+	var endCoordinates = graph.Nodes[end]
 	var numberOfHeapPulls = 0
+	heuristics := make(map[int32]int32)
 	startTime := time.Now()
 	dist := make([]int32, len(graph.Nodes))
 	for i := 0; i < len(dist); i++ {
@@ -25,10 +27,9 @@ func AStar(start int32, end int32, graph datastructures2.Graph) (int32, []int32,
 	}
 	prev := make([]int32, len(graph.Nodes))
 	pq := make(datastructures2.PriorityQueue, 0)
-
 	heap.Push(&pq, &datastructures2.Item{
 		Id:   start,
-		Prio: manhattenDistance(graph.Nodes[start], graph.Nodes[end]),
+		Prio: 0,
 		Prev: start,
 		Dist: 0,
 	})
@@ -51,7 +52,11 @@ func AStar(start int32, end int32, graph datastructures2.Graph) (int32, []int32,
 			if alt >= dist[to] {
 				continue
 			}
-			h := manhattenDistance(graph.Nodes[node.Id], graph.Nodes[to])
+			h, ok := heuristics[to]
+			if !ok {
+				h = manhattenDistance(graph.Nodes[to], endCoordinates)
+				heuristics[to] = h
+			}
 			heap.Push(&pq, &datastructures2.Item{
 				Id:   to,
 				Prio: alt + h,
