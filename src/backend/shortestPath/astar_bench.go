@@ -16,7 +16,7 @@ func BenchAStar(outPath, pathToFmiFile string, N int) {
 		randomStart := rand.Intn(len(graph.Nodes) - 1)
 		randomDest := rand.Intn(len(graph.Nodes) - 1)
 		start := time.Now()
-		_, _, numberOfHeapPulls := AStarWithNumberOfHeapPulls(int32(randomStart), int32(randomDest), graph)
+		_, _, numberOfHeapPulls := AStar(int32(randomStart), int32(randomDest), graph)
 		diff := time.Since(start).Microseconds()
 		timesAndPulls = append(timesAndPulls, []string{fmt.Sprint(diff), fmt.Sprint(numberOfHeapPulls)})
 	}

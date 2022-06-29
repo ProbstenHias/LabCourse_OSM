@@ -63,7 +63,7 @@ func routeHandler(graph datastructures.Graph) http.HandlerFunc {
 		endIdx, _ := strconv.Atoi(query["endIdx"][0])
 		endIdx32 := int32(endIdx)
 
-		distance, prev := shortestPath.Dijkstra(startIdx32, endIdx32, graph)
+		distance, prev, _ := shortestPath.Dijkstra(startIdx32, endIdx32, graph)
 		if distance == math.MaxInt32 {
 			w.WriteHeader(http.StatusNoContent)
 			return

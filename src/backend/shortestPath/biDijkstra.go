@@ -60,48 +60,7 @@ func dijkstra(start, end int32, prev, dist []int32, graph datastructures.Graph, 
 	}
 }
 
-func BiDijkstra(start int32, end int32, graph datastructures.Graph) (int32, []int32) {
-	startTime := time.Now()
-
-	var heapPullsFor = 0
-	var heapPullsBack = 0
-	visited = make(map[int32]bool)
-	prevFor := make([]int32, len(graph.Nodes))
-	prevBack := make([]int32, len(graph.Nodes))
-	distFor := make([]int32, len(graph.Nodes))
-	distBack := make([]int32, len(graph.Nodes))
-	var commonFor int32 = -1
-	var commonBack int32 = -1
-	var wg sync.WaitGroup
-	var m sync.Mutex
-	wg.Add(1)
-	go dijkstra(start, end, prevFor, distFor, graph, &commonFor, &heapPullsFor, &wg, &m)
-	wg.Add(1)
-	go dijkstra(end, start, prevBack, distBack, graph, &commonBack, &heapPullsBack, &wg, &m)
-	wg.Wait()
-
-	//if commonFor == -1 || commonBack == -1 {
-	//	return math.MaxInt32, prevFor
-	//}
-	//dist1 := distFor[commonFor] + distBack[commonFor]
-	//dist2 := distFor[commonBack] + distBack[commonBack]
-	//var common int32 = -1
-	//var dist int32 = -1
-	//if dist1 < dist2 {
-	//	common = commonFor
-	//	dist = dist1
-	//
-	//} else {
-	//	common = commonBack
-	//	dist = dist2
-	//}
-	//prev := generatePrev(start, end, prevFor, prevBack, common)
-	log.Printf("Time to calculate bidijkstra: %s\n", time.Since(startTime))
-	return 0, []int32{}
-
-}
-
-func BiDijkstraWithNumberOfHeapPulls(start int32, end int32, graph datastructures.Graph) (int32, []int32, int) {
+func BiDijkstra(start int32, end int32, graph datastructures.Graph) (int32, []int32, int) {
 	startTime := time.Now()
 
 	var heapPullsFor = 0
