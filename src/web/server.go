@@ -2,7 +2,7 @@ package web
 
 import (
 	"OSM/src/backend/datastructures"
-	helpers2 "OSM/src/backend/helpers"
+	"OSM/src/backend/helpers"
 	"OSM/src/backend/shortestPath"
 	"log"
 	"math"
@@ -11,7 +11,7 @@ import (
 )
 
 func Main(pathToFmiFile string) {
-	graph := helpers2.CreateGraphFromFile(pathToFmiFile)
+	graph := helpers.CreateGraphFromFile(pathToFmiFile)
 
 	fileServer := http.FileServer(http.Dir("./src/web/static"))
 	http.Handle("/", fileServer)
@@ -38,8 +38,8 @@ func pointHandler(graph datastructures.Graph) http.HandlerFunc {
 		query := r.URL.Query()
 		lat, _ := strconv.ParseFloat(query["lat"][0], 64)
 		lng, _ := strconv.ParseFloat(query["lng"][0], 64)
-		idx, node := helpers2.GetClosestNodeInGraph([]float64{lat, lng}, graph)
-		rawJson := helpers2.NodeToPointGeoJson(node, idx)
+		idx, node := helpers.GetClosestNodeInGraph([]float64{lat, lng}, graph)
+		rawJson := helpers.NodeToPointGeoJson(node, idx)
 		w.WriteHeader(http.StatusOK)
 		w.Write(rawJson)
 	}
@@ -69,8 +69,8 @@ func routeHandler(graph datastructures.Graph) http.HandlerFunc {
 			return
 		}
 
-		lineNodes := helpers2.CreatePathFromPrev(startIdx32, endIdx32, prev, graph)
-		rawJson := helpers2.NodesToLineStringGeoJson(lineNodes, distance)
+		lineNodes := helpers.CreatePathFromPrev(startIdx32, endIdx32, prev, graph)
+		rawJson := helpers.NodesToLineStringGeoJson(lineNodes, distance)
 
 		w.WriteHeader(http.StatusOK)
 		w.Write(rawJson)
