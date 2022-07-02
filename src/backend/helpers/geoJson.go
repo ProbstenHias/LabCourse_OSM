@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-func NodesToLineStringGeoJson(nodes [][]float64, popupContent int32) []byte {
+func NodesToLineStringGeoJson(nodes [][]float64, popupContent int) []byte {
 	lineNodes := make([][]float64, len(nodes))
 	for i, elem := range nodes {
 		lineNodes[i] = []float64{elem[1], elem[0]}
@@ -22,7 +22,7 @@ func NodesToLineStringGeoJson(nodes [][]float64, popupContent int32) []byte {
 	return rawJson
 }
 
-func NodeToPointGeoJson(node []float64, index int32) []byte {
+func NodeToPointGeoJson(node []float64, index int) []byte {
 	fc := geojson.NewFeatureCollection()
 	feature := geojson.NewPointFeature([]float64{node[1], node[0]})
 	popupContent := fmt.Sprintf("Lat: %f\nLong: %f\nIndex: %d", node[0], node[1], index)
@@ -50,7 +50,7 @@ func GraphToGeoJson(graph datastructures.Graph) []byte {
 		pointFeature := geojson.NewPointFeature([]float64{node[1], node[0]})
 		pointFeature.SetProperty("idx", i)
 		fc.AddFeature(pointFeature)
-		edges := graph.GetAllOutgoingEdgesOfNode(int32(i))
+		edges := graph.GetAllOutgoingEdgesOfNode(i)
 		for _, edgeIdx := range edges {
 			toNode := graph.Nodes[graph.Edges[edgeIdx]]
 			lineStringFeature := geojson.NewLineStringFeature([][]float64{

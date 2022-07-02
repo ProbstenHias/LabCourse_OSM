@@ -9,9 +9,9 @@ import (
 	"time"
 )
 
-var visited map[int32]bool
+var visited map[int]bool
 
-func dijkstra(start, end int32, prev, dist []int32, graph datastructures.Graph, common *int32, numberOfHeapPulls *int, wg *sync.WaitGroup, m *sync.Mutex) {
+func dijkstra(start, end int, prev, dist []int, graph datastructures.Graph, common *int, numberOfHeapPulls *int, wg *sync.WaitGroup, m *sync.Mutex) {
 	defer wg.Done()
 	for i := 0; i < len(dist); i++ {
 		dist[i] = math.MaxInt32
@@ -60,18 +60,18 @@ func dijkstra(start, end int32, prev, dist []int32, graph datastructures.Graph, 
 	}
 }
 
-func BiDijkstra(start int32, end int32, graph datastructures.Graph) (int32, []int32, int) {
+func BiDijkstra(start int, end int, graph datastructures.Graph) (int, []int, int) {
 	startTime := time.Now()
 
 	var heapPullsFor = 0
 	var heapPullsBack = 0
-	visited = make(map[int32]bool)
-	prevFor := make([]int32, len(graph.Nodes))
-	prevBack := make([]int32, len(graph.Nodes))
-	distFor := make([]int32, len(graph.Nodes))
-	distBack := make([]int32, len(graph.Nodes))
-	var commonFor int32 = -1
-	var commonBack int32 = -1
+	visited = make(map[int]bool)
+	prevFor := make([]int, len(graph.Nodes))
+	prevBack := make([]int, len(graph.Nodes))
+	distFor := make([]int, len(graph.Nodes))
+	distBack := make([]int, len(graph.Nodes))
+	var commonFor = -1
+	var commonBack = -1
 	var wg sync.WaitGroup
 	var m sync.Mutex
 	wg.Add(1)
@@ -97,12 +97,12 @@ func BiDijkstra(start int32, end int32, graph datastructures.Graph) (int32, []in
 	//}
 	//prev := generatePrev(start, end, prevFor, prevBack, common)
 	log.Printf("Time to calculate bidijkstra: %s\n", time.Since(startTime))
-	return 0, []int32{}, heapPullsFor + heapPullsBack
+	return 0, []int{}, heapPullsFor + heapPullsBack
 
 }
 
-func generatePrev(start, end int32, prevFor, prevBack []int32, common int32) []int32 {
-	prev := make([]int32, len(prevBack))
+func generatePrev(start, end int, prevFor, prevBack []int, common int) []int {
+	prev := make([]int, len(prevBack))
 	var currIdx = start
 	for currIdx != common {
 		prev[currIdx] = prevFor[currIdx]

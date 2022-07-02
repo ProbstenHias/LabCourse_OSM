@@ -2,12 +2,12 @@ package datastructures
 
 // An Item is something we manage in a Prio queue.
 type Item struct {
-	Id   int32 // The Id of the item; arbitrary.
-	Prio int32 // The Prio of the item in the queue.
+	Id   int // The Id of the item; arbitrary.
+	Prio int // The Prio of the item in the queue.
 	// The Index is needed by update and is maintained by the heap.Interface methods.
-	Prev  int32
-	Index int   // The Index of the item in the heap.
-	Dist  int32 // the distance we need for a star
+	Prev  int
+	Index int // The Index of the item in the heap.
+	Dist  int // the distance we need for a star
 }
 
 // A PriorityQueue implements heap.Interface and holds Items.

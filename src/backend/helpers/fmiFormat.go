@@ -32,9 +32,9 @@ func CreateGraphFromFile(pathToFile string) datastructures.Graph {
 
 	graph := datastructures.Graph{
 		Nodes:    make([][]float64, numberNodes),
-		Edges:    make([]int32, numberEdges),
-		Distance: make([]int32, numberEdges),
-		Offset:   make([]int32, numberNodes),
+		Edges:    make([]int, numberEdges),
+		Distance: make([]int, numberEdges),
+		Offset:   make([]int, numberNodes),
 	}
 	idToIdx := make(map[int]int)
 	createNodesFromFile(numberNodes, graph, idToIdx, fileScanner)
@@ -72,7 +72,7 @@ func CreateFileFromGraph(graph datastructures.Graph, pathToFile string) {
 	}
 	var currFrom = 0
 	for i := 0; i < len(graph.Edges); i++ {
-		for currFrom+1 < len(graph.Nodes) && int32(i) >= graph.Offset[currFrom+1] {
+		for currFrom+1 < len(graph.Nodes) && i >= graph.Offset[currFrom+1] {
 			currFrom++
 		}
 		line := fmt.Sprintf("%d %d %d\n", currFrom, graph.Edges[i], graph.Distance[i])
@@ -112,11 +112,11 @@ func createEdgesFromFile(edgeCount int, graph datastructures.Graph, idToIdx map[
 		to, _ := strconv.Atoi(line[1])
 		to = idToIdx[to]
 		dist, _ := strconv.Atoi(line[2])
-		graph.Edges[i] = int32(to)
-		graph.Distance[i] = int32(dist)
+		graph.Edges[i] = to
+		graph.Distance[i] = dist
 		// for all nodes with no edges add offset as well
 		for j := from + 1; j <= fr; j++ {
-			graph.Offset[j] = int32(i)
+			graph.Offset[j] = i
 
 		}
 		from = fr

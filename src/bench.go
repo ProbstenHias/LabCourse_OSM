@@ -14,9 +14,9 @@ import (
 func main() {
 	outPath := "C:/Users/Matthias/go/src/OSM/out/"
 	pathToFmiFile := "D:/OneDrive - stud.uni-stuttgart.de/Uni/10. Semester/FP-OSM/pbf files/oceanfmi.sec"
-	const N = 10
+	const N = 100
 	graph := helpers.CreateGraphFromFile(pathToFmiFile)
-	randomRoutes := helpers.CreateRandomRoutes(N, int32(len(graph.Nodes)))
+	randomRoutes := helpers.CreateRandomRoutes(N, len(graph.Nodes))
 
 	log.Println("Starting to bench dijkstra.")
 	outPathDijkstra := fmt.Sprintf(outPath + "dijkstra_bench.csv")
@@ -32,7 +32,7 @@ func main() {
 
 }
 
-func benchShortestPathWithFunction(shortestPathFunction func(int32, int32, datastructures.Graph) (int32, []int32, int), graph datastructures.Graph, randomRoutes [][]int32, outPath string) {
+func benchShortestPathWithFunction(shortestPathFunction func(int, int, datastructures.Graph) (int, []int, int), graph datastructures.Graph, randomRoutes [][]int, outPath string) {
 	var timesAndPulls [][]string
 	for i := 0; i < len(randomRoutes); i++ {
 		randomStart := randomRoutes[i][0]

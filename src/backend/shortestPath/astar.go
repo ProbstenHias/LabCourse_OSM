@@ -1,7 +1,7 @@
 package shortestPath
 
 import (
-	datastructures2 "OSM/src/backend/datastructures"
+	"OSM/src/backend/datastructures"
 	"OSM/src/backend/helpers"
 	"container/heap"
 	"log"
@@ -12,22 +12,22 @@ import (
 // try with caching heuristic results
 // try 2d distance as heuristic
 
-func manhattenDistance(point1, point2 []float64) int32 {
-	return int32(helpers.Haversine(point1, point2))
+func manhattenDistance(point1, point2 []float64) int {
+	return helpers.Haversine(point1, point2)
 }
 
-func AStar(start int32, end int32, graph datastructures2.Graph) (int32, []int32, int) {
+func AStar(start int, end int, graph datastructures.Graph) (int, []int, int) {
 	var endCoordinates = graph.Nodes[end]
 	var numberOfHeapPulls = 0
-	heuristics := make(map[int32]int32)
+	heuristics := make(map[int]int)
 	startTime := time.Now()
-	dist := make([]int32, len(graph.Nodes))
+	dist := make([]int, len(graph.Nodes))
 	for i := 0; i < len(dist); i++ {
-		dist[i] = math.MaxInt32
+		dist[i] = math.MaxInt
 	}
-	prev := make([]int32, len(graph.Nodes))
-	pq := make(datastructures2.PriorityQueue, 0)
-	heap.Push(&pq, &datastructures2.Item{
+	prev := make([]int, len(graph.Nodes))
+	pq := make(datastructures.PriorityQueue, 0)
+	heap.Push(&pq, &datastructures.Item{
 		Id:   start,
 		Prio: 0,
 		Prev: start,
@@ -35,7 +35,7 @@ func AStar(start int32, end int32, graph datastructures2.Graph) (int32, []int32,
 	})
 	for pq.Len() > 0 {
 		numberOfHeapPulls++
-		node := heap.Pop(&pq).(*datastructures2.Item)
+		node := heap.Pop(&pq).(*datastructures.Item)
 		if node.Dist >= dist[node.Id] {
 			continue
 		}
@@ -57,7 +57,7 @@ func AStar(start int32, end int32, graph datastructures2.Graph) (int32, []int32,
 				h = manhattenDistance(graph.Nodes[to], endCoordinates)
 				heuristics[to] = h
 			}
-			heap.Push(&pq, &datastructures2.Item{
+			heap.Push(&pq, &datastructures.Item{
 				Id:   to,
 				Prio: alt + h,
 				Prev: node.Id,

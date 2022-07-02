@@ -17,7 +17,7 @@ func TestDijkstra(t *testing.T) {
 		randomStart := rand.Intn(len(graph.Nodes) - 1)
 		randomDest := rand.Intn(len(graph.Nodes) - 1)
 		start := time.Now()
-		Dijkstra(int32(randomStart), int32(randomDest), graph)
+		Dijkstra(randomStart, randomDest, graph)
 		diff := time.Since(start)
 		times = append(times, diff)
 		log.Printf("Dijkstra took %s seconds\n", diff)

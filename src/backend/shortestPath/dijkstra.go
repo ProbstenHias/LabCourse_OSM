@@ -8,14 +8,14 @@ import (
 	"time"
 )
 
-func Dijkstra(start int32, end int32, graph datastructures2.Graph) (int32, []int32, int) {
+func Dijkstra(start int, end int, graph datastructures2.Graph) (int, []int, int) {
 	var numberOfHeapPulls = 0
 	startTime := time.Now()
-	dist := make([]int32, len(graph.Nodes))
+	dist := make([]int, len(graph.Nodes))
 	for i := 0; i < len(dist); i++ {
-		dist[i] = math.MaxInt32
+		dist[i] = math.MaxInt
 	}
-	prev := make([]int32, len(graph.Nodes))
+	prev := make([]int, len(graph.Nodes))
 	pq := make(datastructures2.PriorityQueue, 0)
 
 	heap.Push(&pq, &datastructures2.Item{
@@ -53,18 +53,18 @@ func Dijkstra(start int32, end int32, graph datastructures2.Graph) (int32, []int
 	return dist[end], prev, numberOfHeapPulls
 }
 
-func DijkstraOneToN(start int32, end []int32, graph datastructures2.Graph) ([]int32, []int32, int) {
+func DijkstraOneToN(start int, end []int, graph datastructures2.Graph) ([]int, []int, int) {
 
-	endLookup := make(map[int32]bool)
+	endLookup := make(map[int]bool)
 	for i := 0; i < len(end); i++ {
 		endLookup[end[i]] = false
 	}
 	var numberOfHeapPulls = 0
-	dist := make([]int32, len(graph.Nodes))
+	dist := make([]int, len(graph.Nodes))
 	for i := 0; i < len(dist); i++ {
-		dist[i] = math.MaxInt32
+		dist[i] = math.MaxInt
 	}
-	prev := make([]int32, len(graph.Nodes))
+	prev := make([]int, len(graph.Nodes))
 	pq := make(datastructures2.PriorityQueue, 0)
 
 	heap.Push(&pq, &datastructures2.Item{
@@ -104,7 +104,7 @@ func DijkstraOneToN(start int32, end []int32, graph datastructures2.Graph) ([]in
 	return constructReturnDists(end, dist), prev, numberOfHeapPulls
 }
 
-func allVisited(v map[int32]bool) bool {
+func allVisited(v map[int]bool) bool {
 	var returnValue = true
 	for _, value := range v {
 		returnValue = returnValue && value
@@ -112,8 +112,8 @@ func allVisited(v map[int32]bool) bool {
 	return returnValue
 }
 
-func constructReturnDists(end []int32, dist []int32) []int32 {
-	returnDists := make([]int32, len(end))
+func constructReturnDists(end []int, dist []int) []int {
+	returnDists := make([]int, len(end))
 	for i := 0; i < len(end); i++ {
 		returnDists[i] = dist[end[i]]
 	}

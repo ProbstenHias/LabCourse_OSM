@@ -59,17 +59,14 @@ func routeHandler(graph datastructures.Graph) http.HandlerFunc {
 		query := r.URL.Query()
 
 		startIdx, _ := strconv.Atoi(query["startIdx"][0])
-		startIdx32 := int32(startIdx)
 		endIdx, _ := strconv.Atoi(query["endIdx"][0])
-		endIdx32 := int32(endIdx)
-
-		distance, prev, _ := shortestPath.Dijkstra(startIdx32, endIdx32, graph)
-		if distance == math.MaxInt32 {
+		distance, prev, _ := shortestPath.Dijkstra(startIdx, endIdx, graph)
+		if distance == math.MaxInt {
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}
 
-		lineNodes := helpers.CreatePathFromPrev(startIdx32, endIdx32, prev, graph)
+		lineNodes := helpers.CreateCoordinatesPathFromPrev(startIdx, endIdx, prev, graph)
 		rawJson := helpers.NodesToLineStringGeoJson(lineNodes, distance)
 
 		w.WriteHeader(http.StatusOK)

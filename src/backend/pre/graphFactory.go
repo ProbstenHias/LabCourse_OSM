@@ -37,7 +37,7 @@ func GenerateSpherePoints(n int) [][]float64 {
 	return points
 }
 
-func GenerateGraphFromPoints(n int64, points [][]float64, classification []bool) datastructures.Graph {
+func GenerateGraphFromPoints(n int, points [][]float64, classification []bool) datastructures.Graph {
 	start := time.Now()
 
 	// here we store the pointsInWater that were generated and are in fact in water
@@ -191,9 +191,9 @@ func GenerateGraphFromPoints(n int64, points [][]float64, classification []bool)
 func createGraphFromPointsAndEdges(pointsInWater [][]float64, edges []Edge) datastructures.Graph {
 	graph := datastructures.Graph{
 		Nodes:    pointsInWater,
-		Edges:    make([]int32, len(edges)),
-		Distance: make([]int32, len(edges)),
-		Offset:   make([]int32, len(pointsInWater)),
+		Edges:    make([]int, len(edges)),
+		Distance: make([]int, len(edges)),
+		Offset:   make([]int, len(pointsInWater)),
 	}
 	graph.Nodes = pointsInWater
 	sort.Slice(edges, func(i, j int) bool {
@@ -203,11 +203,11 @@ func createGraphFromPointsAndEdges(pointsInWater [][]float64, edges []Edge) data
 	graph.Offset[0] = 0
 	var from = 0
 	for i, edge := range edges {
-		graph.Edges[i] = int32(edge.to)
-		graph.Distance[i] = int32(edge.distance)
+		graph.Edges[i] = edge.to
+		graph.Distance[i] = edge.distance
 		// for all nodes with no edges add offset as well
 		for j := from + 1; j <= edge.from; j++ {
-			graph.Offset[j] = int32(i)
+			graph.Offset[j] = i
 		}
 
 		from = edge.from

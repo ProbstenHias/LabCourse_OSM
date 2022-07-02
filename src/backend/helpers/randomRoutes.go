@@ -2,12 +2,12 @@ package helpers
 
 import "math/rand"
 
-func CreateRandomRoutes(numberOfRoutes int, numberOfNodes int32) [][]int32 {
-	routes := make([][]int32, numberOfRoutes)
+func CreateRandomRoutes(numberOfRoutes int, numberOfNodes int) [][]int {
+	routes := make([][]int, numberOfRoutes)
 	for i := 0; i < numberOfRoutes; i++ {
-		randomStart := rand.Int31n(numberOfNodes)
-		randomDest := rand.Int31n(numberOfNodes)
-		routes[i] = []int32{randomStart, randomDest}
+		randomStart := rand.Intn(numberOfNodes)
+		randomDest := rand.Intn(numberOfNodes)
+		routes[i] = []int{randomStart, randomDest}
 	}
 	return routes
 }
