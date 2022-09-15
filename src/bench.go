@@ -8,27 +8,34 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"time"
 )
 
 func main() {
-	outPath := "C:/Users/Matthias/go/src/OSM/out/"
-	pathToFmiFile := "D:/OneDrive - stud.uni-stuttgart.de/Uni/10. Semester/FP-OSM/pbf files/oceanfmi.sec"
+	pathToFmiFile := os.Args[1]
+	pathToCHFmiFile := os.Args[2]
+	outPath := path.Dir(pathToFmiFile)
 	const N = 100
 	graph := helpers.CreateGraphFromFile(pathToFmiFile)
+	chg := helpers.CreateContractedGraphFromFile(pathToCHFmiFile)
 	randomRoutes := helpers.CreateRandomRoutes(N, len(graph.Nodes))
 
-	log.Println("Starting to bench dijkstra.")
-	outPathDijkstra := fmt.Sprintf(outPath + "dijkstra_bench.csv")
+	log.Println("Starting to bench Dijkstra.")
+	outPathDijkstra := fmt.Sprintf(outPath + "/dijkstra_bench.csv")
 	benchShortestPathWithFunction(shortestPath.Dijkstra, graph, randomRoutes, outPathDijkstra)
 
-	log.Println("Starting to bench astar")
-	outPathAStar := fmt.Sprintf(outPath + "astar_bench.csv")
+	log.Println("Starting to bench A Star")
+	outPathAStar := fmt.Sprintf(outPath + "/astar_bench.csv")
 	benchShortestPathWithFunction(shortestPath.AStar, graph, randomRoutes, outPathAStar)
 
-	log.Println("Starting to bench bidijkstra")
-	outPathBiDijkstra := fmt.Sprintf(outPath + "bidijkstra_bench.csv")
+	log.Println("Starting to bench Bidirectional Dijkstra")
+	outPathBiDijkstra := fmt.Sprintf(outPath + "/bidijkstra_bench.csv")
 	benchShortestPathWithFunction(shortestPath.BiDijkstra, graph, randomRoutes, outPathBiDijkstra)
+
+	log.Println("Starting to bench Contraction Hierarchy with Dijkstra")
+	outPathCHDijkstra := fmt.Sprintf(outPath + "/chdijkstra_bench.csv")
+	benchShortestPathWithFunction(shortestPath.CHDijkstra, chg, randomRoutes, outPathCHDijkstra)
 
 }
 
