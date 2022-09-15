@@ -13,11 +13,11 @@ func TestPriorityQueue_Pop(t *testing.T) {
 	pq := make(PriorityQueue, 0)
 	for i := 0; i < len(input); i++ {
 		heap.Push(&pq, &Item{
-			Id:   int32(input[i]),
-			Prio: int32(input[i]),
+			Id:   input[i],
+			Prio: input[i],
 		})
 	}
-	var lastElem = int32(-1)
+	var lastElem = -1
 	for i := 0; i < len(input); i++ {
 		elem := heap.Pop(&pq).(*Item)
 		if lastElem > elem.Prio {

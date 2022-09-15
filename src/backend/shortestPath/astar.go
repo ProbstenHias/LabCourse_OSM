@@ -13,7 +13,10 @@ import (
 // try 2d distance as heuristic
 
 func manhattenDistance(point1, point2 []float64) int {
-	return helpers.Haversine(point1, point2)
+	// we have to adjust this a little bit since we got massive rounding errors when creating the graph
+	// (since we used int as distances)
+	return int(float64(helpers.Haversine(point1, point2)) * 0.995)
+
 }
 
 func AStar(start int, end int, graph datastructures.Graph) (int, []int, int) {

@@ -1,14 +1,14 @@
 package shortestPath
 
 import (
-	datastructures2 "OSM/src/backend/datastructures"
+	"OSM/src/backend/datastructures"
 	"container/heap"
 	"log"
 	"math"
 	"time"
 )
 
-func Dijkstra(start int, end int, graph datastructures2.Graph) (int, []int, int) {
+func Dijkstra(start int, end int, graph datastructures.Graph) (int, []int, int) {
 	var numberOfHeapPulls = 0
 	startTime := time.Now()
 	dist := make([]int, len(graph.Nodes))
@@ -16,16 +16,16 @@ func Dijkstra(start int, end int, graph datastructures2.Graph) (int, []int, int)
 		dist[i] = math.MaxInt
 	}
 	prev := make([]int, len(graph.Nodes))
-	pq := make(datastructures2.PriorityQueue, 0)
+	pq := make(datastructures.PriorityQueue, 0)
 
-	heap.Push(&pq, &datastructures2.Item{
+	heap.Push(&pq, &datastructures.Item{
 		Id:   start,
 		Prio: 0,
 		Prev: start,
 	})
 	for pq.Len() > 0 {
 		numberOfHeapPulls++
-		node := heap.Pop(&pq).(*datastructures2.Item)
+		node := heap.Pop(&pq).(*datastructures.Item)
 		if node.Prio >= dist[node.Id] {
 			continue
 		}
@@ -42,7 +42,7 @@ func Dijkstra(start int, end int, graph datastructures2.Graph) (int, []int, int)
 			if alt >= dist[to] {
 				continue
 			}
-			heap.Push(&pq, &datastructures2.Item{
+			heap.Push(&pq, &datastructures.Item{
 				Id:   to,
 				Prio: alt,
 				Prev: node.Id,
@@ -53,7 +53,7 @@ func Dijkstra(start int, end int, graph datastructures2.Graph) (int, []int, int)
 	return dist[end], prev, numberOfHeapPulls
 }
 
-func DijkstraOneToN(start int, end []int, graph datastructures2.Graph) ([]int, []int, int) {
+func DijkstraOneToN(start int, end []int, graph datastructures.Graph) ([]int, []int, int) {
 
 	endLookup := make(map[int]bool)
 	for i := 0; i < len(end); i++ {
@@ -65,16 +65,16 @@ func DijkstraOneToN(start int, end []int, graph datastructures2.Graph) ([]int, [
 		dist[i] = math.MaxInt
 	}
 	prev := make([]int, len(graph.Nodes))
-	pq := make(datastructures2.PriorityQueue, 0)
+	pq := make(datastructures.PriorityQueue, 0)
 
-	heap.Push(&pq, &datastructures2.Item{
+	heap.Push(&pq, &datastructures.Item{
 		Id:   start,
 		Prio: 0,
 		Prev: start,
 	})
 	for pq.Len() > 0 {
 		numberOfHeapPulls++
-		node := heap.Pop(&pq).(*datastructures2.Item)
+		node := heap.Pop(&pq).(*datastructures.Item)
 		if node.Prio >= dist[node.Id] {
 			continue
 		}
@@ -86,7 +86,7 @@ func DijkstraOneToN(start int, end []int, graph datastructures2.Graph) ([]int, [
 			endLookup[node.Id] = true
 		}
 		if allVisited(endLookup) {
-			return constructReturnDists(end, dist), prev, numberOfHeapPulls
+			return ConstructReturnDists(end, dist), prev, numberOfHeapPulls
 		}
 		for _, e := range graph.GetAllOutgoingEdgesOfNode(node.Id) {
 			var to = graph.Edges[e]
@@ -94,14 +94,14 @@ func DijkstraOneToN(start int, end []int, graph datastructures2.Graph) ([]int, [
 			if alt >= dist[to] {
 				continue
 			}
-			heap.Push(&pq, &datastructures2.Item{
+			heap.Push(&pq, &datastructures.Item{
 				Id:   to,
 				Prio: alt,
 				Prev: node.Id,
 			})
 		}
 	}
-	return constructReturnDists(end, dist), prev, numberOfHeapPulls
+	return ConstructReturnDists(end, dist), prev, numberOfHeapPulls
 }
 
 func allVisited(v map[int]bool) bool {
@@ -112,7 +112,7 @@ func allVisited(v map[int]bool) bool {
 	return returnValue
 }
 
-func constructReturnDists(end []int, dist []int) []int {
+func ConstructReturnDists(end []int, dist []int) []int {
 	returnDists := make([]int, len(end))
 	for i := 0; i < len(end); i++ {
 		returnDists[i] = dist[end[i]]

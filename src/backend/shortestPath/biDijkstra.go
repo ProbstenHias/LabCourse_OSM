@@ -80,24 +80,24 @@ func BiDijkstra(start int, end int, graph datastructures.Graph) (int, []int, int
 	go dijkstra(end, start, prevBack, distBack, graph, &commonBack, &heapPullsBack, &wg, &m)
 	wg.Wait()
 
-	//if commonFor == -1 || commonBack == -1 {
-	//	return math.MaxInt32, prevFor
-	//}
-	//dist1 := distFor[commonFor] + distBack[commonFor]
-	//dist2 := distFor[commonBack] + distBack[commonBack]
-	//var common int32 = -1
-	//var dist int32 = -1
-	//if dist1 < dist2 {
-	//	common = commonFor
-	//	dist = dist1
-	//
-	//} else {
-	//	common = commonBack
-	//	dist = dist2
-	//}
+	if commonFor == -1 || commonBack == -1 {
+		return math.MaxInt, prevFor, heapPullsFor + heapPullsBack
+	}
+	dist1 := distFor[commonFor] + distBack[commonFor]
+	dist2 := distFor[commonBack] + distBack[commonBack]
+	//var common = -1
+	var dist = -1
+	if dist1 < dist2 {
+		//common = commonFor
+		dist = dist1
+
+	} else {
+		//common = commonBack
+		dist = dist2
+	}
 	//prev := generatePrev(start, end, prevFor, prevBack, common)
 	log.Printf("Time to calculate bidijkstra: %s\n", time.Since(startTime))
-	return 0, []int{}, heapPullsFor + heapPullsBack
+	return dist, []int{}, heapPullsFor + heapPullsBack
 
 }
 
