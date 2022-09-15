@@ -122,3 +122,132 @@ func createEdgesFromFile(edgeCount int, graph datastructures.Graph, idToIdx map[
 		from = fr
 	}
 }
+
+func CreateContractedGraphFromFile(pathToFile string) datastructures.Graph {
+	readFile, err := os.Open(pathToFile)
+	if err != nil {
+		log.Println(err)
+	}
+
+	fileScanner := bufio.NewScanner(readFile)
+	fileScanner.Split(bufio.ScanLines)
+	//skip comments
+	for fileScanner.Scan() {
+		line := fileScanner.Text()
+		if line == "" {
+			break
+		}
+	}
+	fileScanner.Scan()
+	numberNodes, _ := strconv.Atoi(fileScanner.Text())
+	fileScanner.Scan()
+	numberEdges, _ := strconv.Atoi(fileScanner.Text())
+
+	graph := datastructures.Graph{
+		Nodes:     make([][]float64, numberNodes),
+		Edges:     make([]int, numberEdges),
+		Distance:  make([]int, numberEdges),
+		Offset:    make([]int, numberNodes),
+		Order:     make([]int, numberNodes),
+		Shortcuts: make(map[int]map[int]int),
+	}
+	createCHNodesFromFile(numberNodes, graph, fileScanner)
+	createCHEdgesFromFile(numberEdges, graph, fileScanner)
+
+	err = readFile.Close()
+	if err != nil {
+		log.Fatalf("Got error while clsing a filereader. Err: %s", err.Error())
+	}
+	return graph
+}
+
+func createCHEdgesFromFile(edgeCount int, graph datastructures.Graph, fileScanner *bufio.Scanner) {
+	graph.Offset[0] = 0
+	var from = 0
+	for i := 0; i < edgeCount; i++ {
+		fileScanner.Scan()
+		line := strings.Split(fileScanner.Text(), " ")
+		fr, _ := strconv.Atoi(line[0])
+		to, _ := strconv.Atoi(line[1])
+		dist, _ := strconv.Atoi(line[2])
+		graph.Edges[i] = to
+		graph.Distance[i] = dist
+		// for all nodes with no edges add offset as well
+		for j := from + 1; j <= fr; j++ {
+			graph.Offset[j] = i
+
+		}
+		from = fr
+		if len(line) == 4 {
+			via, _ := strconv.Atoi(line[3])
+			if _, ok := graph.Shortcuts[fr]; !ok {
+				graph.Shortcuts[fr] = make(map[int]int)
+			}
+			graph.Shortcuts[fr][to] = via
+		}
+	}
+}
+
+func createCHNodesFromFile(nodeCount int, graph datastructures.Graph, fileScanner *bufio.Scanner) {
+	for i := 0; i < nodeCount; i++ {
+		fileScanner.Scan()
+		line := strings.Split(fileScanner.Text(), " ")
+		lat, _ := strconv.ParseFloat(line[1], 64)
+		long, _ := strconv.ParseFloat(line[2], 64)
+		order, _ := strconv.Atoi(line[3])
+		node := []float64{lat, long}
+		graph.Nodes[i] = node
+		graph.Order[i] = order
+	}
+}
+
+func CreateFileFromContractedGraph(graph datastructures.Graph, pathToFile string) {
+	f, _ := os.Create(pathToFile)
+	w := bufio.NewWriter(f)
+	linesToWrite := []string{"# a comment for good measure\n",
+		"\n",
+		fmt.Sprintln(len(graph.Nodes)),
+		fmt.Sprintln(len(graph.Edges))}
+	fmt.Println(len(graph.Edges))
+	for _, line := range linesToWrite {
+		_, err := w.WriteString(line)
+		if err != nil {
+			log.Fatalf("Got error while writing to a file. Err: %s", err.Error())
+		}
+	}
+
+	// here we start writing nodes
+	for i := 0; i < len(graph.Nodes); i++ {
+		line := fmt.Sprintf("%d %f %f %d\n", i, graph.Nodes[i][0], graph.Nodes[i][1], graph.Order[i])
+		_, err := w.WriteString(line)
+		if err != nil {
+			log.Fatalf("Got error while writing to a file. Err: %s", err.Error())
+
+		}
+	}
+
+	// here we start writing edges
+	var currFrom = 0
+	for i := 0; i < len(graph.Edges); i++ {
+		for currFrom+1 < len(graph.Nodes) && i >= graph.Offset[currFrom+1] {
+			currFrom++
+		}
+		line := ""
+		if via, ok := graph.Shortcuts[currFrom][graph.Edges[i]]; ok {
+			line = fmt.Sprintf("%d %d %d %d\n", currFrom, graph.Edges[i], graph.Distance[i], via)
+
+		} else {
+			line = fmt.Sprintf("%d %d %d\n", currFrom, graph.Edges[i], graph.Distance[i])
+
+		}
+		_, err := w.WriteString(line)
+		if err != nil {
+			log.Fatalf("Got error while writing to a file. Err: %s", err.Error())
+		}
+	}
+	err := w.Flush()
+	if err != nil {
+		log.Fatalf("Got error while flushing a filewriter. Err: %s", err.Error())
+	}
+	log.Printf("Writing graph.fmi file to %s\n", pathToFile)
+}
