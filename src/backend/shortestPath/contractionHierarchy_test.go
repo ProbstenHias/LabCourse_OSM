@@ -6,7 +6,7 @@ import (
 )
 
 func TestFindPath(t *testing.T) {
-	pathToFMIFile := "../../../out/graph100k.fmi"
+	pathToFMIFile := "../../../out/graph1k.fmi"
 	graph := helpers.CreateGraphFromFile(pathToFMIFile)
 	graphContracted := helpers.CreateGraphFromFile(pathToFMIFile)
 	graphContracted = ContractGraph(graphContracted)

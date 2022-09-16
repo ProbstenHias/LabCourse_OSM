@@ -9,7 +9,7 @@ import (
 
 func TestAStar(t *testing.T) {
 	fmt.Println(os.Getwd())
-	graph := helpers.CreateGraphFromFile("../../../out/graph1m.fmi")
+	graph := helpers.CreateGraphFromFile("../../../out/graph1k.fmi")
 	randomRoutes := helpers.CreateRandomRoutes(100, len(graph.Nodes))
 	for i := 0; i < len(randomRoutes); i++ {
 		dijkstraLength, _, _ := Dijkstra(randomRoutes[i][0], randomRoutes[i][1], graph)
@@ -24,9 +24,9 @@ func TestAStar(t *testing.T) {
 }
 
 func TestSpecificNode(t *testing.T) {
-	graph := helpers.CreateGraphFromFile("../../../out/graph100k.fmi")
-	start := 28565
-	end := 46981
+	graph := helpers.CreateGraphFromFile("../../../out/graph1k.fmi")
+	start := 13
+	end := 388
 	dijkstraL, dijkstraPrev, _ := Dijkstra(start, end, graph)
 	astarL, astarPrev, _ := AStar(start, end, graph)
 	dijkstraRoute := helpers.CreateIndexPathFromPrev(start, end, dijkstraPrev)
