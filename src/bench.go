@@ -29,10 +29,6 @@ func main() {
 	outPathAStar := fmt.Sprintf(outPath + "/astar_bench.csv")
 	benchShortestPathWithFunction(shortestPath.AStar, graph, randomRoutes, outPathAStar)
 
-	log.Println("Starting to bench Bidirectional Dijkstra")
-	outPathBiDijkstra := fmt.Sprintf(outPath + "/bidijkstra_bench.csv")
-	benchShortestPathWithFunction(shortestPath.BiDijkstra, graph, randomRoutes, outPathBiDijkstra)
-
 	log.Println("Starting to bench Contraction Hierarchy with Dijkstra")
 	outPathCHDijkstra := fmt.Sprintf(outPath + "/chdijkstra_bench.csv")
 	benchShortestPathWithFunction(shortestPath.CHDijkstra, chg, randomRoutes, outPathCHDijkstra)

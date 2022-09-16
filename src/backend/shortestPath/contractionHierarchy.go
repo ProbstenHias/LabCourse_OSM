@@ -43,16 +43,20 @@ func ContractGraph(graph datastructures.Graph) datastructures.Graph {
 		directNeighbours := chg.GetAllNeighboursOfNode(currNode.Id)
 		printStatus(orderIndex, directNeighbours, chg)
 
+		// in this loop from each neighbour to all other neighbours of currNode shortcuts are inserted if and only if the direct path
+		// via currNode is the shortest path from one neighbour to another
 		for k := 0; k < len(directNeighbours)-1; k++ {
 			from := directNeighbours[k]
 
-			//exclude all path searches between nodes that already have a direct edge
+			// exclude all path searches between nodes that already have a direct edge
 			destinationNodes := removeExistingPaths(directNeighbours, k, chg, from)
 
 			pathLengths := calcDirectPathLengthsOneToN(from, destinationNodes, currNode.Id, chg)
 
+			// restrict the search space of the dijkstra
 			maxPathLength := calcDijkstraLimit(from, currNode.Id, destinationNodes, chg)
 
+			// use buckets as described in the paper
 			buckets := setUpBuckets(destinationNodes, chg)
 
 			dist, _, prioQueue := setUpDijkstra(from, chg)
@@ -108,9 +112,10 @@ func handleFoundNode(from, x int, dist, pathLengths map[int]int, buckets map[int
 				continue
 			}
 			// here we get the path length that was calculated
-			// if w == x then this is the actual pathLength that was found
 			foundPathLength := dist[x] + bucket[0]
 
+			// we know there is a path to w with the found length
+			// if this length is shorter than the direct path via currNode we know there will never be a shortcut
 			if pathLengths[w] >= foundPathLength {
 				shortcutable[w] = false
 			}
@@ -144,6 +149,8 @@ func printStatus(nodesContracted int, directNeighbours []int, chg datastructures
 }
 
 func getNextNode(priorityQueue *datastructures.PriorityQueue, shortcuts map[int][][]int, chg datastructures.CHGraph) *datastructures.Item {
+	// this method returns a new node from the priority queue
+	// this method uses lazy update to make sure the priority of each node is up to date
 	currNode := heap.Pop(priorityQueue).(*datastructures.Item)
 
 	for currNode.Prio != calcPrioOfNode(currNode.Id, shortcuts, chg) {
@@ -167,17 +174,10 @@ func removeExistingPaths(directNeighbours []int, k int, chg datastructures.CHGra
 	return destinationNodes
 }
 
-func maxEntry(array []int) int {
-	max := -1
-	for _, element := range array {
-		if element > max {
-			max = element
-		}
-	}
-	return max
-}
-
 func calcDijkstraLimit(from, via int, destinationNodes []int, chg datastructures.CHGraph) int {
+
+	// the limit of a dijkstra run is c(from, via) + max_w ( c(v, w)) - min_x ( c(x,w))
+	// with x being all the direct neighbours of all destinationNodes w
 	max := -1
 	min := math.MaxInt
 	for _, node := range destinationNodes {
@@ -278,6 +278,7 @@ func calcSpatialDiversity(node int, shortcuts map[int][][]int) int {
 }
 
 func CHDijkstra(start, end int, graph datastructures.Graph) (int, []int, int) {
+	// setup a forward and a backward dijkstra
 	startTime := time.Now()
 	shortestPathLength := math.MaxInt
 	shortestPathVia := -1
@@ -311,27 +312,33 @@ func CHDijkstra(start, end int, graph datastructures.Graph) (int, []int, int) {
 
 	for !(abortFor && abortBack) {
 		nodeFor, nodeBack := -1, -1
+
+		// iterate between a forward and a backward dijkstra step
 		if !abortFor {
 			nodeFor, abortFor = dijkstraStep(end, &pqFor, distFor, prevFor, &numberOfHeapPulls, graph)
 		}
 		if !abortBack {
 			nodeBack, abortBack = dijkstraStep(start, &pqBack, distBack, prevBack, &numberOfHeapPulls, graph)
 		}
+
 		if nodeFor != -1 {
-			// check for shortest path
+			// if the settled node in forward direction has a greater distance to the start node than the current shortest path
+			// we can abort the forward run
 			if distFor[nodeFor] >= shortestPathLength {
 				abortFor = true
 			}
+			// if we found a node that was also visited in the backward run we have a shortest path candidate
 			if distBack[nodeFor] != math.MaxInt {
 				pathLengthAlt := distFor[nodeFor] + distBack[nodeFor]
+				// if the candidate is shorter than the current shortest path we update the curr shortest path
 				if pathLengthAlt < shortestPathLength {
 					shortestPathLength = pathLengthAlt
 					shortestPathVia = nodeFor
 				}
 			}
 		}
+		// we do the same as in the forward run
 		if nodeBack != -1 {
-			// check for shortest path
 			if distBack[nodeBack] >= shortestPathLength {
 				abortBack = true
 			}
@@ -347,6 +354,7 @@ func CHDijkstra(start, end int, graph datastructures.Graph) (int, []int, int) {
 		nodeFor, nodeBack = -1, -1
 
 	}
+	// if the run found a path set up the prev array
 	if shortestPathLength < math.MaxInt {
 
 		prevNode := shortestPathVia
